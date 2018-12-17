@@ -2,12 +2,9 @@
 
 
 [[projects]]
-  digest = "1:f770a5f4490489d915aef41b33b922634e73648ede4ce3ce095e76f9058000f6"
+  digest = "1:88b822fdfd4e6cc3e04bcae689b9914dadf385fbf17ccd9204dd5fa1c4582f38"
   name = "github.com/RangelReale/osin"
-  packages = [
-    ".",
-    "example",
-  ]
+  packages = ["."]
   pruneopts = "UT"
   revision = "0f3357bb07e801ea62327872d19913969001dd7a"
   version = "v1.0.1"
@@ -80,6 +77,25 @@
   pruneopts = "UT"
   revision = "9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8"
   version = "v1.1.0"
+
+[[projects]]
+  digest = "1:420ec120a74b22e8a967f2a2928d89503e373848c0d4447d16ddbbbef9a9965c"
+  name = "github.com/jinzhu/gorm"
+  packages = [
+    ".",
+    "dialects/mysql",
+  ]
+  pruneopts = "UT"
+  revision = "472c70caa40267cb89fd8facb07fe6454b578626"
+  version = "v1.9.2"
+
+[[projects]]
+  branch = "master"
+  digest = "1:fd97437fbb6b7dce04132cf06775bd258cce305c44add58eb55ca86c6c325160"
+  name = "github.com/jinzhu/inflection"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "04140366298a54a039076d798123ffa108fff46c"
 
 [[projects]]
   digest = "1:3e551bbb3a7c0ab2a2bf4660e7fcad16db089fdcfbb44b0199e62838038623ea"
@@ -166,10 +182,10 @@
   analyzer-version = 1
   input-imports = [
     "github.com/RangelReale/osin",
-    "github.com/RangelReale/osin/example",
     "github.com/felipeweb/osin-mysql",
     "github.com/gin-gonic/gin",
-    "github.com/go-sql-driver/mysql",
+    "github.com/jinzhu/gorm",
+    "github.com/jinzhu/gorm/dialects/mysql",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
