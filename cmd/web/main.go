@@ -14,6 +14,7 @@ import (
 	"github.com/RangelReale/osin"
 	"github.com/RangelReale/osin/example"
 	mysql "github.com/felipeweb/osin-mysql"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -35,8 +36,10 @@ func main() {
 	sconfig.AllowClientSecretInParams = true
 	server := osin.NewServer(sconfig, store)
 
+	r := gin.Default()
+
 	// Authorization code endpoint
-	http.HandleFunc("/authorize", func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/authorize", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		resp := server.NewResponse()
 		defer resp.Close()
 
@@ -55,10 +58,10 @@ func main() {
 			resp.Output["custom_parameter"] = 187723
 		}
 		osin.OutputJSON(resp, w, r)
-	})
+	}))
 
 	// Access token endpoint
-	http.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/token", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		resp := server.NewResponse()
 		defer resp.Close()
 
@@ -88,10 +91,10 @@ func main() {
 			resp.Output["custom_parameter"] = 19923
 		}
 		osin.OutputJSON(resp, w, r)
-	})
+	}))
 
 	// Information endpoint
-	http.HandleFunc("/info", func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/info", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		resp := server.NewResponse()
 		defer resp.Close()
 
@@ -99,10 +102,10 @@ func main() {
 			server.FinishInfoRequest(resp, r, ir)
 		}
 		osin.OutputJSON(resp, w, r)
-	})
+	}))
 
 	// Application home endpoint
-	http.HandleFunc("/app", func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/app", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("<html><body>"))
 
 		w.Write([]byte(fmt.Sprintf("<a href=\"/authorize?response_type=code&client_id=1234&state=xyz&scope=everything&redirect_uri=%s\">Code</a><br/>", url.QueryEscape("http://localhost:14000/appauth/code"))))
@@ -112,10 +115,10 @@ func main() {
 		w.Write([]byte(fmt.Sprintf("<a href=\"/appauth/assertion\">Assertion</a><br/>")))
 
 		w.Write([]byte("</body></html>"))
-	})
+	}))
 
 	// Application destination - CODE
-	http.HandleFunc("/appauth/code", func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/appauth/code", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		code := r.FormValue("code")
@@ -175,10 +178,10 @@ func main() {
 			rurl := fmt.Sprintf("/appauth/info?code=%s", at)
 			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Info</a><br/>", rurl)))
 		}
-	})
+	}))
 
 	// Application destination - TOKEN
-	http.HandleFunc("/appauth/token", func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/appauth/token", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
@@ -187,10 +190,10 @@ func main() {
 		w.Write([]byte("Response data in fragment - not acessible via server - Nothing to do"))
 
 		w.Write([]byte("</body></html>"))
-	})
+	}))
 
 	// Application destination - PASSWORD
-	http.HandleFunc("/appauth/password", func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/appauth/password", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
@@ -233,10 +236,10 @@ func main() {
 		}
 
 		w.Write([]byte("</body></html>"))
-	})
+	}))
 
 	// Application destination - CLIENT_CREDENTIALS
-	http.HandleFunc("/appauth/client_credentials", func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/appauth/client_credentials", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
@@ -278,10 +281,10 @@ func main() {
 		}
 
 		w.Write([]byte("</body></html>"))
-	})
+	}))
 
 	// Application destination - ASSERTION
-	http.HandleFunc("/appauth/assertion", func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/appauth/assertion", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
@@ -323,10 +326,10 @@ func main() {
 		}
 
 		w.Write([]byte("</body></html>"))
-	})
+	}))
 
 	// Application destination - REFRESH
-	http.HandleFunc("/appauth/refresh", func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/appauth/refresh", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
@@ -374,10 +377,10 @@ func main() {
 			rurl := fmt.Sprintf("/appauth/info?code=%s", at)
 			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Info</a><br/>", rurl)))
 		}
-	})
+	}))
 
 	// Application destination - INFO
-	http.HandleFunc("/appauth/info", func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/appauth/info", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
@@ -420,7 +423,7 @@ func main() {
 			rurl := fmt.Sprintf("/appauth/refresh?code=%s", rt)
 			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Refresh Token</a><br/>", rurl)))
 		}
-	})
+	}))
 
-	http.ListenAndServe(":14000", nil)
+	r.Run(":14000")
 }
