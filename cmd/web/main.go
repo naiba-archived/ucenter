@@ -1,13 +1,8 @@
 package main
 
-// Open url in browser:
-// http://localhost:14000/app
-
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
-	"net/url"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -38,392 +33,63 @@ func main() {
 
 	r := gin.Default()
 
-	// Authorization code endpoint
-	r.Any("/authorize", func(c *gin.Context) {
-		resp := server.NewResponse()
-		defer resp.Close()
+	o := r.Group("oauth2")
+	{
+		// Authorization code endpoint
+		o.Any("/auth", func(c *gin.Context) {
+			resp := server.NewResponse()
+			defer resp.Close()
 
-		if ar := server.HandleAuthorizeRequest(resp, c.Request); ar != nil {
-			if !example.HandleLoginPage(ar, c.Writer, c.Request) {
-				return
-			}
-			ar.UserData = struct{ Login string }{Login: "test"}
-			ar.Authorized = true
-			server.FinishAuthorizeRequest(resp, c.Request, ar)
-		}
-		if resp.IsError && resp.InternalError != nil {
-			fmt.Printf("ERROR: %s\n", resp.InternalError)
-		}
-		if !resp.IsError {
-			resp.Output["custom_parameter"] = 187723
-		}
-		osin.OutputJSON(resp, c.Writer, c.Request)
-	})
-
-	// Access token endpoint
-	r.Any("/token", func(c *gin.Context) {
-		resp := server.NewResponse()
-		defer resp.Close()
-
-		if ar := server.HandleAccessRequest(resp, c.Request); ar != nil {
-			switch ar.Type {
-			case osin.AUTHORIZATION_CODE:
-				ar.Authorized = true
-			case osin.REFRESH_TOKEN:
-				ar.Authorized = true
-			case osin.PASSWORD:
-				if ar.Username == "test" && ar.Password == "test" {
-					ar.Authorized = true
+			if ar := server.HandleAuthorizeRequest(resp, c.Request); ar != nil {
+				if !example.HandleLoginPage(ar, c.Writer, c.Request) {
+					return
 				}
-			case osin.CLIENT_CREDENTIALS:
+				ar.UserData = struct{ Login string }{Login: "test"}
 				ar.Authorized = true
-			case osin.ASSERTION:
-				if ar.AssertionType == "urn:nb.unknown" && ar.Assertion == "very.newbie" {
+				server.FinishAuthorizeRequest(resp, c.Request, ar)
+			}
+			if resp.IsError && resp.InternalError != nil {
+				fmt.Printf("ERROR: %s\n", resp.InternalError)
+			}
+			if !resp.IsError {
+				resp.Output["custom_parameter"] = 187723
+			}
+			osin.OutputJSON(resp, c.Writer, c.Request)
+		})
+
+		// Access token endpoint
+		o.Any("/token", func(c *gin.Context) {
+			resp := server.NewResponse()
+			defer resp.Close()
+
+			if ar := server.HandleAccessRequest(resp, c.Request); ar != nil {
+				switch ar.Type {
+				case osin.AUTHORIZATION_CODE:
 					ar.Authorized = true
+				case osin.REFRESH_TOKEN:
+					ar.Authorized = true
+				case osin.PASSWORD:
+					if ar.Username == "test" && ar.Password == "test" {
+						ar.Authorized = true
+					}
+				case osin.CLIENT_CREDENTIALS:
+					ar.Authorized = true
+				case osin.ASSERTION:
+					if ar.AssertionType == "urn:nb.unknown" && ar.Assertion == "very.newbie" {
+						ar.Authorized = true
+					}
 				}
+				server.FinishAccessRequest(resp, c.Request, ar)
 			}
-			server.FinishAccessRequest(resp, c.Request, ar)
-		}
-		if resp.IsError && resp.InternalError != nil {
-			fmt.Printf("ERROR: %s\n", resp.InternalError)
-		}
-		if !resp.IsError {
-			resp.Output["custom_parameter"] = 19923
-		}
-		osin.OutputJSON(resp, c.Writer, c.Request)
-	})
-
-	// Information endpoint
-	r.Any("/info", func(c *gin.Context) {
-		resp := server.NewResponse()
-		defer resp.Close()
-
-		if ir := server.HandleInfoRequest(resp, c.Request); ir != nil {
-			server.FinishInfoRequest(resp, c.Request, ir)
-		}
-		osin.OutputJSON(resp, c.Writer, c.Request)
-	})
-
-	// Application home endpoint
-	r.GET("/app", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("<html><body>"))
-
-		w.Write([]byte(fmt.Sprintf("<a href=\"/authorize?response_type=code&client_id=1234&state=xyz&scope=everything&redirect_uri=%s\">Code</a><br/>", url.QueryEscape("http://localhost:14000/appauth/code"))))
-		w.Write([]byte(fmt.Sprintf("<a href=\"/authorize?response_type=token&client_id=1234&state=xyz&scope=everything&redirect_uri=%s\">Implicit</a><br/>", url.QueryEscape("http://localhost:14000/appauth/token"))))
-		w.Write([]byte(fmt.Sprintf("<a href=\"/appauth/password\">Password</a><br/>")))
-		w.Write([]byte(fmt.Sprintf("<a href=\"/appauth/client_credentials\">Client Credentials</a><br/>")))
-		w.Write([]byte(fmt.Sprintf("<a href=\"/appauth/assertion\">Assertion</a><br/>")))
-
-		w.Write([]byte("</body></html>"))
-	}))
-
-	// Application destination - CODE
-	r.GET("/appauth/code", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-
-		code := r.FormValue("code")
-
-		w.Write([]byte("<html><body>"))
-		w.Write([]byte("APP AUTH - CODE<br/>"))
-		defer w.Write([]byte("</body></html>"))
-
-		if code == "" {
-			w.Write([]byte("Nothing to do"))
-			return
-		}
-
-		jr := make(map[string]interface{})
-
-		// build access code url
-		aurl := fmt.Sprintf("/token?grant_type=authorization_code&client_id=1234&client_secret=aabbccdd&state=xyz&redirect_uri=%s&code=%s",
-			url.QueryEscape("http://localhost:14000/appauth/code"), url.QueryEscape(code))
-
-		// if parse, download and parse json
-		if r.FormValue("doparse") == "1" {
-			err := example.DownloadAccessToken(fmt.Sprintf("http://localhost:14000%s", aurl),
-				&osin.BasicAuth{"1234", "aabbccdd"}, jr)
-			if err != nil {
-				w.Write([]byte(err.Error()))
-				w.Write([]byte("<br/>"))
+			if resp.IsError && resp.InternalError != nil {
+				fmt.Printf("ERROR: %s\n", resp.InternalError)
 			}
-		}
-
-		// show json error
-		if erd, ok := jr["error"]; ok {
-			w.Write([]byte(fmt.Sprintf("ERROR: %s<br/>\n", erd)))
-		}
-
-		// show json access token
-		if at, ok := jr["access_token"]; ok {
-			w.Write([]byte(fmt.Sprintf("ACCESS TOKEN: %s<br/>\n", at)))
-		}
-
-		w.Write([]byte(fmt.Sprintf("FULL RESULT: %+v<br/>\n", jr)))
-
-		// output links
-		w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Goto Token URL</a><br/>", aurl)))
-
-		cururl := *r.URL
-		curq := cururl.Query()
-		curq.Add("doparse", "1")
-		cururl.RawQuery = curq.Encode()
-		w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Download Token</a><br/>", cururl.String())))
-
-		if rt, ok := jr["refresh_token"]; ok {
-			rurl := fmt.Sprintf("/appauth/refresh?code=%s", rt)
-			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Refresh Token</a><br/>", rurl)))
-		}
-
-		if at, ok := jr["access_token"]; ok {
-			rurl := fmt.Sprintf("/appauth/info?code=%s", at)
-			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Info</a><br/>", rurl)))
-		}
-	}))
-
-	// Application destination - TOKEN
-	r.GET("/appauth/token", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-
-		w.Write([]byte("<html><body>"))
-		w.Write([]byte("APP AUTH - TOKEN<br/>"))
-
-		w.Write([]byte("Response data in fragment - not acessible via server - Nothing to do"))
-
-		w.Write([]byte("</body></html>"))
-	}))
-
-	// Application destination - PASSWORD
-	r.GET("/appauth/password", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-
-		w.Write([]byte("<html><body>"))
-		w.Write([]byte("APP AUTH - PASSWORD<br/>"))
-
-		jr := make(map[string]interface{})
-
-		// build access code url
-		aurl := fmt.Sprintf("/token?grant_type=password&scope=everything&username=%s&password=%s",
-			"test", "test")
-
-		// download token
-		err := example.DownloadAccessToken(fmt.Sprintf("http://localhost:14000%s", aurl),
-			&osin.BasicAuth{Username: "1234", Password: "aabbccdd"}, jr)
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			w.Write([]byte("<br/>"))
-		}
-
-		// show json error
-		if erd, ok := jr["error"]; ok {
-			w.Write([]byte(fmt.Sprintf("ERROR: %s<br/>\n", erd)))
-		}
-
-		// show json access token
-		if at, ok := jr["access_token"]; ok {
-			w.Write([]byte(fmt.Sprintf("ACCESS TOKEN: %s<br/>\n", at)))
-		}
-
-		w.Write([]byte(fmt.Sprintf("FULL RESULT: %+v<br/>\n", jr)))
-
-		if rt, ok := jr["refresh_token"]; ok {
-			rurl := fmt.Sprintf("/appauth/refresh?code=%s", rt)
-			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Refresh Token</a><br/>", rurl)))
-		}
-
-		if at, ok := jr["access_token"]; ok {
-			rurl := fmt.Sprintf("/appauth/info?code=%s", at)
-			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Info</a><br/>", rurl)))
-		}
-
-		w.Write([]byte("</body></html>"))
-	}))
-
-	// Application destination - CLIENT_CREDENTIALS
-	r.GET("/appauth/client_credentials", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-
-		w.Write([]byte("<html><body>"))
-		w.Write([]byte("APP AUTH - CLIENT CREDENTIALS<br/>"))
-
-		jr := make(map[string]interface{})
-
-		// build access code url
-		aurl := fmt.Sprintf("/token?grant_type=client_credentials")
-
-		// download token
-		err := example.DownloadAccessToken(fmt.Sprintf("http://localhost:14000%s", aurl),
-			&osin.BasicAuth{Username: "1234", Password: "aabbccdd"}, jr)
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			w.Write([]byte("<br/>"))
-		}
-
-		// show json error
-		if erd, ok := jr["error"]; ok {
-			w.Write([]byte(fmt.Sprintf("ERROR: %s<br/>\n", erd)))
-		}
-
-		// show json access token
-		if at, ok := jr["access_token"]; ok {
-			w.Write([]byte(fmt.Sprintf("ACCESS TOKEN: %s<br/>\n", at)))
-		}
-
-		w.Write([]byte(fmt.Sprintf("FULL RESULT: %+v<br/>\n", jr)))
-
-		if rt, ok := jr["refresh_token"]; ok {
-			rurl := fmt.Sprintf("/appauth/refresh?code=%s", rt)
-			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Refresh Token</a><br/>", rurl)))
-		}
-
-		if at, ok := jr["access_token"]; ok {
-			rurl := fmt.Sprintf("/appauth/info?code=%s", at)
-			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Info</a><br/>", rurl)))
-		}
-
-		w.Write([]byte("</body></html>"))
-	}))
-
-	// Application destination - ASSERTION
-	r.GET("/appauth/assertion", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-
-		w.Write([]byte("<html><body>"))
-		w.Write([]byte("APP AUTH - ASSERTION<br/>"))
-
-		jr := make(map[string]interface{})
-
-		// build access code url
-		aurl := fmt.Sprintf("/token?grant_type=assertion&assertion_type=urn:osin.example.complete&assertion=osin.data")
-
-		// download token
-		err := example.DownloadAccessToken(fmt.Sprintf("http://localhost:14000%s", aurl),
-			&osin.BasicAuth{Username: "1234", Password: "aabbccdd"}, jr)
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			w.Write([]byte("<br/>"))
-		}
-
-		// show json error
-		if erd, ok := jr["error"]; ok {
-			w.Write([]byte(fmt.Sprintf("ERROR: %s<br/>\n", erd)))
-		}
-
-		// show json access token
-		if at, ok := jr["access_token"]; ok {
-			w.Write([]byte(fmt.Sprintf("ACCESS TOKEN: %s<br/>\n", at)))
-		}
-
-		w.Write([]byte(fmt.Sprintf("FULL RESULT: %+v<br/>\n", jr)))
-
-		if rt, ok := jr["refresh_token"]; ok {
-			rurl := fmt.Sprintf("/appauth/refresh?code=%s", rt)
-			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Refresh Token</a><br/>", rurl)))
-		}
-
-		if at, ok := jr["access_token"]; ok {
-			rurl := fmt.Sprintf("/appauth/info?code=%s", at)
-			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Info</a><br/>", rurl)))
-		}
-
-		w.Write([]byte("</body></html>"))
-	}))
-
-	// Application destination - REFRESH
-	r.GET("/appauth/refresh", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-
-		w.Write([]byte("<html><body>"))
-		w.Write([]byte("APP AUTH - REFRESH<br/>"))
-		defer w.Write([]byte("</body></html>"))
-
-		code := r.FormValue("code")
-
-		if code == "" {
-			w.Write([]byte("Nothing to do"))
-			return
-		}
-
-		jr := make(map[string]interface{})
-
-		// build access code url
-		aurl := fmt.Sprintf("/token?grant_type=refresh_token&refresh_token=%s", url.QueryEscape(code))
-
-		// download token
-		err := example.DownloadAccessToken(fmt.Sprintf("http://localhost:14000%s", aurl),
-			&osin.BasicAuth{Username: "1234", Password: "aabbccdd"}, jr)
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			w.Write([]byte("<br/>"))
-		}
-
-		// show json error
-		if erd, ok := jr["error"]; ok {
-			w.Write([]byte(fmt.Sprintf("ERROR: %s<br/>\n", erd)))
-		}
-
-		// show json access token
-		if at, ok := jr["access_token"]; ok {
-			w.Write([]byte(fmt.Sprintf("ACCESS TOKEN: %s<br/>\n", at)))
-		}
-
-		w.Write([]byte(fmt.Sprintf("FULL RESULT: %+v<br/>\n", jr)))
-
-		if rt, ok := jr["refresh_token"]; ok {
-			rurl := fmt.Sprintf("/appauth/refresh?code=%s", rt)
-			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Refresh Token</a><br/>", rurl)))
-		}
-
-		if at, ok := jr["access_token"]; ok {
-			rurl := fmt.Sprintf("/appauth/info?code=%s", at)
-			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Info</a><br/>", rurl)))
-		}
-	}))
-
-	// Application destination - INFO
-	r.GET("/appauth/info", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-
-		w.Write([]byte("<html><body>"))
-		w.Write([]byte("APP AUTH - INFO<br/>"))
-		defer w.Write([]byte("</body></html>"))
-
-		code := r.FormValue("code")
-
-		if code == "" {
-			w.Write([]byte("Nothing to do"))
-			return
-		}
-
-		jr := make(map[string]interface{})
-
-		// build access code url
-		aurl := fmt.Sprintf("/info?code=%s", url.QueryEscape(code))
-
-		// download token
-		err := example.DownloadAccessToken(fmt.Sprintf("http://localhost:14000%s", aurl),
-			&osin.BasicAuth{Username: "1234", Password: "aabbccdd"}, jr)
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			w.Write([]byte("<br/>"))
-		}
-
-		// show json error
-		if erd, ok := jr["error"]; ok {
-			w.Write([]byte(fmt.Sprintf("ERROR: %s<br/>\n", erd)))
-		}
-
-		// show json access token
-		if at, ok := jr["access_token"]; ok {
-			w.Write([]byte(fmt.Sprintf("ACCESS TOKEN: %s<br/>\n", at)))
-		}
-
-		w.Write([]byte(fmt.Sprintf("FULL RESULT: %+v<br/>\n", jr)))
-
-		if rt, ok := jr["refresh_token"]; ok {
-			rurl := fmt.Sprintf("/appauth/refresh?code=%s", rt)
-			w.Write([]byte(fmt.Sprintf("<a href=\"%s\">Refresh Token</a><br/>", rurl)))
-		}
-	}))
-
-	r.Run(":14000")
+			if !resp.IsError {
+				resp.Output["custom_parameter"] = 19923
+			}
+			osin.OutputJSON(resp, c.Writer, c.Request)
+		})
+	}
+
+	r.Run()
 }
