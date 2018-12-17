@@ -39,17 +39,17 @@ func main() {
 	r := gin.Default()
 
 	// Authorization code endpoint
-	r.Any("/authorize", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/authorize", func(c *gin.Context) {
 		resp := server.NewResponse()
 		defer resp.Close()
 
-		if ar := server.HandleAuthorizeRequest(resp, r); ar != nil {
-			if !example.HandleLoginPage(ar, w, r) {
+		if ar := server.HandleAuthorizeRequest(resp, c.Request); ar != nil {
+			if !example.HandleLoginPage(ar, c.Writer, c.Request) {
 				return
 			}
 			ar.UserData = struct{ Login string }{Login: "test"}
 			ar.Authorized = true
-			server.FinishAuthorizeRequest(resp, r, ar)
+			server.FinishAuthorizeRequest(resp, c.Request, ar)
 		}
 		if resp.IsError && resp.InternalError != nil {
 			fmt.Printf("ERROR: %s\n", resp.InternalError)
@@ -57,15 +57,15 @@ func main() {
 		if !resp.IsError {
 			resp.Output["custom_parameter"] = 187723
 		}
-		osin.OutputJSON(resp, w, r)
-	}))
+		osin.OutputJSON(resp, c.Writer, c.Request)
+	})
 
 	// Access token endpoint
-	r.Any("/token", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/token", func(c *gin.Context) {
 		resp := server.NewResponse()
 		defer resp.Close()
 
-		if ar := server.HandleAccessRequest(resp, r); ar != nil {
+		if ar := server.HandleAccessRequest(resp, c.Request); ar != nil {
 			switch ar.Type {
 			case osin.AUTHORIZATION_CODE:
 				ar.Authorized = true
@@ -78,11 +78,11 @@ func main() {
 			case osin.CLIENT_CREDENTIALS:
 				ar.Authorized = true
 			case osin.ASSERTION:
-				if ar.AssertionType == "urn:osin.example.complete" && ar.Assertion == "osin.data" {
+				if ar.AssertionType == "urn:nb.unknown" && ar.Assertion == "very.newbie" {
 					ar.Authorized = true
 				}
 			}
-			server.FinishAccessRequest(resp, r, ar)
+			server.FinishAccessRequest(resp, c.Request, ar)
 		}
 		if resp.IsError && resp.InternalError != nil {
 			fmt.Printf("ERROR: %s\n", resp.InternalError)
@@ -90,22 +90,22 @@ func main() {
 		if !resp.IsError {
 			resp.Output["custom_parameter"] = 19923
 		}
-		osin.OutputJSON(resp, w, r)
-	}))
+		osin.OutputJSON(resp, c.Writer, c.Request)
+	})
 
 	// Information endpoint
-	r.Any("/info", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+	r.Any("/info", func(c *gin.Context) {
 		resp := server.NewResponse()
 		defer resp.Close()
 
-		if ir := server.HandleInfoRequest(resp, r); ir != nil {
-			server.FinishInfoRequest(resp, r, ir)
+		if ir := server.HandleInfoRequest(resp, c.Request); ir != nil {
+			server.FinishInfoRequest(resp, c.Request, ir)
 		}
-		osin.OutputJSON(resp, w, r)
-	}))
+		osin.OutputJSON(resp, c.Writer, c.Request)
+	})
 
 	// Application home endpoint
-	r.Any("/app", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+	r.GET("/app", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("<html><body>"))
 
 		w.Write([]byte(fmt.Sprintf("<a href=\"/authorize?response_type=code&client_id=1234&state=xyz&scope=everything&redirect_uri=%s\">Code</a><br/>", url.QueryEscape("http://localhost:14000/appauth/code"))))
@@ -118,7 +118,7 @@ func main() {
 	}))
 
 	// Application destination - CODE
-	r.Any("/appauth/code", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+	r.GET("/appauth/code", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		code := r.FormValue("code")
@@ -181,7 +181,7 @@ func main() {
 	}))
 
 	// Application destination - TOKEN
-	r.Any("/appauth/token", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+	r.GET("/appauth/token", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
@@ -193,7 +193,7 @@ func main() {
 	}))
 
 	// Application destination - PASSWORD
-	r.Any("/appauth/password", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+	r.GET("/appauth/password", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
@@ -239,7 +239,7 @@ func main() {
 	}))
 
 	// Application destination - CLIENT_CREDENTIALS
-	r.Any("/appauth/client_credentials", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+	r.GET("/appauth/client_credentials", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
@@ -284,7 +284,7 @@ func main() {
 	}))
 
 	// Application destination - ASSERTION
-	r.Any("/appauth/assertion", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+	r.GET("/appauth/assertion", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
@@ -329,7 +329,7 @@ func main() {
 	}))
 
 	// Application destination - REFRESH
-	r.Any("/appauth/refresh", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+	r.GET("/appauth/refresh", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
@@ -380,7 +380,7 @@ func main() {
 	}))
 
 	// Application destination - INFO
-	r.Any("/appauth/info", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+	r.GET("/appauth/info", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		w.Write([]byte("<html><body>"))
