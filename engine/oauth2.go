@@ -18,7 +18,7 @@ func oauth2auth(c *gin.Context) {
 	if ar := OsinServer.HandleAuthorizeRequest(resp, c.Request); ar != nil {
 		user := c.MustGet(ucenter.AuthUser).(*ucenter.User)
 		if user != nil {
-			ar.UserData = user
+			ar.UserData = user.DataDesensitization()
 			ar.Authorized = true
 			OsinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 		} else {

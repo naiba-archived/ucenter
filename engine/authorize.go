@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"net/http"
 	"strings"
 
 	"github.com/RangelReale/osin"
@@ -25,11 +24,7 @@ func authorizeMiddleware(c *gin.Context) {
 	tk, err := c.Cookie(ucenter.AuthCookieName)
 	if err == nil {
 		var loginClient ucenter.LoginClient
-		if ucenter.DB.Where("token = ?", tk).First(&loginClient).Error == nil {
-			if err := ucenter.DB.Related(&loginClient, "User").Error; err != nil {
-				c.AbortWithError(http.StatusInternalServerError, err)
-				return
-			}
+		if ucenter.DB.Preload("User").Where("token = ?", tk).First(&loginClient).Error == nil {
 			authorizedUser = &loginClient.User
 			c.Set(ucenter.AuthType, ucenter.AuthTypeCookie)
 		}

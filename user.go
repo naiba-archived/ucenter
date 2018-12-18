@@ -16,7 +16,7 @@ type User struct {
 }
 
 // DataDesensitization 数据去敏
-func (u *User) DataDesensitization() {
+func (u *User) DataDesensitization() User {
 	pubEmail := make([]byte, 0)
 	pubEmail = append(pubEmail, u.Email[0])
 	pubEmail = append(pubEmail, []byte("****")...)
@@ -28,4 +28,5 @@ func (u *User) DataDesensitization() {
 	pubPhone = append(pubPhone, []byte("****")...)
 	pubPhone = append(pubPhone, u.Phone[7:11]...)
 	u.Phone = string(pubPhone)
+	return *u
 }
