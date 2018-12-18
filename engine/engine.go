@@ -2,6 +2,7 @@ package engine
 
 import (
 	"database/sql"
+	"net/http"
 
 	"git.cm/naiba/ucenter"
 	"github.com/RangelReale/osin"
@@ -43,8 +44,17 @@ func initOsinResource() {
 func ServWeb() {
 	initOsinResource()
 	r := gin.Default()
+	r.LoadHTMLGlob("template/**/*")
 
 	r.Use(authorizeMiddleware)
+
+	r.GET("login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "page/login", gin.H{})
+	})
+
+	r.GET("signup", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "page/signup", gin.H{})
+	})
 
 	o := r.Group("oauth2")
 	{

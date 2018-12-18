@@ -2,7 +2,8 @@ package engine
 
 import (
 	"fmt"
-	"net/http"
+	"log"
+	"net/url"
 
 	"git.cm/naiba/ucenter"
 
@@ -15,22 +16,18 @@ func oauth2auth(c *gin.Context) {
 	defer resp.Close()
 
 	if ar := OsinServer.HandleAuthorizeRequest(resp, c.Request); ar != nil {
-		user := c.MustGet(ucenter.AuthUser)
+		user := c.MustGet(ucenter.AuthUser).(*ucenter.User)
 		if user != nil {
 			ar.UserData = user
 			ar.Authorized = true
 			OsinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 		} else {
-			c.String(http.StatusOK, "需要登录")
-			return
+			resp.SetRedirect("/login?from=" + url.QueryEscape(c.Request.RequestURI))
 		}
 	}
 
 	if resp.IsError && resp.InternalError != nil {
-		fmt.Printf("ERROR: %s\n", resp.InternalError)
-	}
-	if !resp.IsError {
-		resp.Output["custom_parameter"] = 187723
+		log.Println("ERROR Oauth2: ", resp.InternalError)
 	}
 
 	osin.OutputJSON(resp, c.Writer, c.Request)

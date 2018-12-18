@@ -1,0 +1,87 @@
+{{define "page/login"}}
+{{template "common/header" .}}
+<style type="text/css">
+    body>.grid {
+        height: 100%;
+    }
+
+    .column {
+        max-width: 450px;
+    }
+</style>
+<div class="ui middle aligned center aligned grid">
+    <div class="column">
+        <h2 class="ui image header">
+            <img src="https://images.gitee.com/uploads/enterprise_logo/5301244449.png" class="image">
+            <div class="content">
+                用户登录
+            </div>
+        </h2>
+        <form class="ui large form" method="POST">
+            <div class="ui stacked segment">
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="user icon"></i>
+                        <input type="text" name="username" placeholder="用户名">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="lock icon"></i>
+                        <input type="password" name="password" placeholder="密码">
+                    </div>
+                </div>
+                <div class="ui fluid large submit button">登录</div>
+            </div>
+
+            <div class="ui error message"></div>
+
+        </form>
+
+        <div class="ui message">
+            新用户？ <a id="signup">注册</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document)
+        .ready(function () {
+            $('#signup').attr('href', '/signup' + $(location).attr('search'))
+            $('.ui.form')
+                .form({
+                    fields: {
+                        email: {
+                            identifier: 'username',
+                            rules: [{
+                                    type: 'empty',
+                                    prompt: '用户名不能为空'
+                                },
+                                {
+                                    type: 'minLength[2]',
+                                    prompt: '用户名长度最短 2 位'
+                                },
+                                {
+                                    type: 'maxLength[12]',
+                                    prompt: '用户名长度最长 12 位'
+                                }
+                            ]
+                        },
+                        password: {
+                            identifier: 'password',
+                            rules: [{
+                                    type: 'empty',
+                                    prompt: '密码不能为空'
+                                },
+                                {
+                                    type: 'minLength[6]',
+                                    prompt: '密码最短6位'
+                                }
+                            ]
+                        }
+                    }
+                });
+        });
+</script>
+{{template "common/footer" .}}
+{{end}}
