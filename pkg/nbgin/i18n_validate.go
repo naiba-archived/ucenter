@@ -20,16 +20,12 @@ type DefaultValidator struct {
 var _ binding.StructValidator = &DefaultValidator{}
 
 func (v *DefaultValidator) ValidateStruct(obj interface{}) error {
-
 	if kindOfData(obj) == reflect.Struct {
-
 		v.lazyinit()
-
 		if err := v.validate.Struct(obj); err != nil {
 			return error(err)
 		}
 	}
-
 	return nil
 }
 

@@ -17,15 +17,15 @@
                 新用户注册
             </div>
         </h2>
-        <form class="ui large form" method="POST">
+        <form class="ui large form{{if or .errors.Username .errors.Password}} error{{end}}" method="POST">
             <div class="ui stacked segment">
-                <div class="field">
+                <div class="field{{if .errors.Username}} error{{end}}">
                     <div class="ui left icon input">
                         <i class="user icon"></i>
                         <input type="text" name="username" placeholder="用户名">
                     </div>
                 </div>
-                <div class="field">
+                <div class="field{{if .errors.Password}} error{{end}}">
                     <div class="ui left icon input">
                         <i class="lock icon"></i>
                         <input type="password" name="password" placeholder="密码">
@@ -40,7 +40,14 @@
                 <div class="ui fluid large submit button">注册</div>
             </div>
 
-            <div class="ui error message"></div>
+            <div class="ui error message">
+                {{if or .errors.Username .errors.Password}}
+                <ul class="list">
+                    {{if .errors.Username}}<li>{{.errors.Username}}</li>{{end}}
+                    {{if .errors.Password}}<li>{{.errors.Password}}</li>{{end}}
+                </ul>
+                {{end}}
+            </div>
 
         </form>
 

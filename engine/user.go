@@ -5,6 +5,7 @@ import (
 
 	"git.cm/naiba/ucenter"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -27,8 +28,25 @@ func signupHandler(c *gin.Context) {
 	}
 	var suf signUpForm
 	if err := c.ShouldBind(&suf); err != nil {
-		c.JSON(http.StatusForbidden, err.(validator.ValidationErrors).Translate(ucenter.ValidatorTrans))
+		errors := err.(validator.ValidationErrors).Translate(ucenter.ValidatorTrans)
+		c.HTML(http.StatusOK, "page/signup", gin.H{
+			"errors": map[string]interface{}{
+				"Username":   errors["signUpForm.用户名"],
+				"Password":   errors["signUpForm.密码"],
+				"RePassword": errors["signUpForm.确认密码"],
+			},
+		})
 		return
 	}
-	c.JSON(200, suf)
+
+	var u = new(ucenter.User)
+	u.Username = suf.Username
+	bPass, err := bcrypt.GenerateFromPassword([]byte(suf.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	u.Password = string(bPass)
+	ucenter.DB.Save(u)
+	c.String(http.StatusOK, "注册成功")
 }
