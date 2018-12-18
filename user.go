@@ -11,8 +11,8 @@ type User struct {
 	gorm.Model
 	Username string `gorm:"type:varchar(36);unique_index"`
 	Password string `json:"-"`
-	Email    string `gorm:"type:varchar(100);unique_index"`
-	Phone    string `gorm:"type:varchar(11);unique_index"`
+	Email    string `gorm:"type:varchar(100)"`
+	Phone    string `gorm:"type:varchar(11)"`
 }
 
 // DataDesensitization 数据去敏

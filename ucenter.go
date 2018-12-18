@@ -28,12 +28,15 @@ const (
 	AuthCookieExpiretion = time.Hour * 24 * 60
 	// DBDSN 数据库连接字符串
 	DBDSN = "root@tcp(localhost:3306)/ucenter?parseTime=True&loc=Asia%2FShanghai"
+	// Domain 系统域名
+	Domain = "localhost"
 )
 
 var (
 	// RouterSkipAuthorize 不需要认证的路由
 	RouterSkipAuthorize = map[string]interface{}{
-		"/naiba": nil,
+		"/login":  nil,
+		"/signup": nil,
 	}
 	// DB 数据库实例
 	DB *gorm.DB
@@ -48,7 +51,7 @@ func init() {
 		panic(err)
 	}
 	// 创建数据表
-	DB.AutoMigrate(&User{})
+	DB.AutoMigrate(&User{}, &LoginClient{})
 	// 初始化错误翻译
 	uni := ut.New(en.New(), cn.New())
 	var found bool

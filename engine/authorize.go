@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"log"
+	"net/http"
 	"strings"
 
 	"github.com/RangelReale/osin"
@@ -24,9 +24,15 @@ func authorizeMiddleware(c *gin.Context) {
 	// 1. 从 Cookie 认证
 	tk, err := c.Cookie(ucenter.AuthCookieName)
 	if err == nil {
-		//TODO:通过Cookie进行认证
-		c.Set(ucenter.AuthType, ucenter.AuthTypeCookie)
-		log.Println(tk)
+		var loginClient ucenter.LoginClient
+		if ucenter.DB.Where("token = ?", tk).First(&loginClient).Error == nil {
+			if err := ucenter.DB.Related(&loginClient, "User").Error; err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
+			authorizedUser = &loginClient.User
+			c.Set(ucenter.AuthType, ucenter.AuthTypeCookie)
+		}
 	}
 	// 2. 从 AccessToken 认证
 	bearer := osin.CheckBearerAuth(c.Request)
