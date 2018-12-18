@@ -2,12 +2,13 @@ package engine
 
 import (
 	"database/sql"
-	"net/http"
 
 	"git.cm/naiba/ucenter"
+	"git.cm/naiba/ucenter/pkg/nbgin"
 	"github.com/RangelReale/osin"
 	mysql "github.com/felipeweb/osin-mysql"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 
 	// MySQL Driver
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -43,19 +44,22 @@ func initOsinResource() {
 // ServWeb 开启Web服务
 func ServWeb() {
 	initOsinResource()
+	binding.Validator = new(nbgin.DefaultValidator)
 	r := gin.Default()
 	r.LoadHTMLGlob("template/**/*")
 
+	// 鉴权
 	r.Use(authorizeMiddleware)
 
-	r.GET("login", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "page/login", gin.H{})
-	})
+	// 登录
+	r.GET("/login", login)
+	r.POST("/login", loginHandler)
 
-	r.GET("signup", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "page/signup", gin.H{})
-	})
+	// 注册
+	r.GET("/signup", signup)
+	r.POST("/signup", signupHandler)
 
+	// Oauth2
 	o := r.Group("oauth2")
 	{
 		// Authorization code endpoint
@@ -64,5 +68,5 @@ func ServWeb() {
 		o.Any("token", oauth2token)
 	}
 
-	r.Run()
+	r.Run(":8080")
 }

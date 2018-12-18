@@ -81,9 +81,20 @@
                                 },
                                 {
                                     type: 'minLength[6]',
-                                    prompt: '密码最短6位'
+                                    prompt: '密码最短 6 位'
+                                },
+                                {
+                                    type: 'maxLength[32]',
+                                    prompt: '密码最长 32 位'
                                 }
                             ]
+                        },
+                        repassword: {
+                            identifier: 'repassword',
+                            rules: [{
+                                type: 'match[password]',
+                                prompt: '两次输入不一致'
+                            }]
                         }
                     }
                 });
