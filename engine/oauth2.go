@@ -11,6 +11,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func oauth2info(c *gin.Context) {
+	resp := OsinServer.NewResponse()
+	defer resp.Close()
+
+	if ir := OsinServer.HandleInfoRequest(resp, c.Request); ir != nil {
+		OsinServer.FinishInfoRequest(resp, c.Request, ir)
+	}
+	osin.OutputJSON(resp, c.Writer, c.Request)
+}
+
 func oauth2auth(c *gin.Context) {
 	resp := OsinServer.NewResponse()
 	defer resp.Close()

@@ -66,6 +66,7 @@ func ServWeb() {
 		o.Any("auth", oauth2auth)
 		// Access token endpoint
 		o.Any("token", oauth2token)
+		o.Any("info", oauth2info)
 	}
 
 	r.Run(":8080")
