@@ -30,22 +30,23 @@ func oauth2auth(c *gin.Context) {
 	if ar := OsinServer.HandleAuthorizeRequest(resp, c.Request); ar != nil {
 		user := c.MustGet(ucenter.AuthUser).(*ucenter.User)
 		if user != nil {
+			scopes := strings.Split(ar.Scope, ",")
+			ucenter.DB.Model(user).Where("client_id = ?", ar.Client.GetId()).Association("UserAuthorizeds").Find(&user.UserAuthorizeds)
 			if c.Request.Method == http.MethodGet {
-				ucenter.DB.Model(user).Where("client_id = ?", ar.Client.GetId()).Association("UserAuthorizeds").Find(&user.UserAuthorizeds)
 				if len(user.UserAuthorizeds) == 1 && ar.Scope == user.UserAuthorizeds[0].Scope {
+					// 用户已经授予权限
 					ar.UserData = user.DataDesensitization()
 					ar.Authorized = true
 					OsinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 				} else {
-					// 需要选择授予权限
+					// 需要用户授予权限
 					if len(user.UserAuthorizeds) == 1 {
 						user.UserAuthorizeds[0].DecodeScope()
 					}
 					oc, _ := ucenter.ParseClient(ar.Client)
-					scopes := strings.Split(ar.Scope, ",")
-
 					var checkPerms = make(map[string]bool)
 					for _, scope := range scopes {
+						// 判断scope合法性
 						if _, has := ucenter.Scopes[scope]; !has {
 							resp.SetError(osin.E_INVALID_SCOPE, "不支持的Scope。")
 							break
@@ -57,6 +58,7 @@ func oauth2auth(c *gin.Context) {
 						}
 					}
 
+					// 权限授予界面
 					if !resp.IsError {
 						c.HTML(http.StatusOK, "page/auth", gin.H{
 							"User":   user,
@@ -68,11 +70,45 @@ func oauth2auth(c *gin.Context) {
 					}
 				}
 			} else if c.Request.Method == http.MethodPost {
-
+				// 用户选择了授权的权限
+				var perms = make(map[string]bool)
+				for _, scope := range scopes {
+					if _, has := ucenter.Scopes[scope]; !has {
+						resp.SetError(osin.E_INVALID_SCOPE, "不支持的Scope。")
+						break
+					}
+					perms[scope] = c.PostForm(scope) == "on"
+				}
+				if !resp.IsError {
+					var ua ucenter.UserAuthorized
+					if len(user.UserAuthorizeds) == 1 {
+						ua = user.UserAuthorizeds[0]
+					}
+					ua.Scope = ar.Scope
+					ua.ScopePermX = perms
+					ua.UserID = user.ID
+					ua.ClientID = ar.Client.GetId()
+					ua.EncodeScope()
+					// 是新增还是更新
+					var err error
+					if len(user.UserAuthorizeds) == 0 {
+						err = ucenter.DB.Save(&ua).Error
+					} else {
+						err = ucenter.DB.Model(&ua).Save(ua).Error
+					}
+					if err != nil {
+						resp.SetError(osin.E_SERVER_ERROR, err.Error())
+					} else {
+						ar.UserData = user.DataDesensitization()
+						ar.Authorized = true
+						OsinServer.FinishAuthorizeRequest(resp, c.Request, ar)
+					}
+				}
 			} else {
 				resp.SetError(osin.E_INVALID_REQUEST, "不支持的请求方式哦。")
 			}
 		} else {
+			// 用户未登录，跳转登录界面
 			resp.SetRedirect("/login?from=" + url.QueryEscape(c.Request.RequestURI))
 		}
 	}

@@ -45,6 +45,7 @@ var (
 	// Scopes 可以使用的 scope 列表
 	Scopes = map[string]string{
 		"baseinfo": "获取用户基本信息",
+		"test":     "测试Scope",
 	}
 )
 

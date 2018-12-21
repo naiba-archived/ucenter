@@ -18,11 +18,11 @@
             </div>
         </h2>
         <form class="ui large form" method="POST">
-            <div class="ui stacked segment">
+            <div class="ui stacked segment left aligned">
                 {{range $k,$v := .Check }}
                 <div class="inline field">
                     <div class="ui slider checkbox">
-                        <input type="checkbox"{{if $v}} checked{{end}} tabindex="0" class="hidden">
+                        <input name="{{$k}}" type="checkbox" {{if $v}} checked{{end}} tabindex="0" class="hidden">
                         <label>{{index $.Scopes $k}}</label>
                     </div>
                 </div>
@@ -51,6 +51,8 @@
         .ready(function () {
             $('.ui.checkbox')
                 .checkbox();
+            $('.ui.form')
+                .form();
         });
 </script>
 {{template "common/footer" .}}

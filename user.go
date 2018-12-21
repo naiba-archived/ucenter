@@ -9,13 +9,13 @@ import (
 // User 用户表
 type User struct {
 	gorm.Model
-	Username string `gorm:"type:varchar(36);unique_index"`
-	Password string `json:"-"`
-	Email    string `gorm:"type:varchar(100)"`
-	Phone    string `gorm:"type:varchar(11)"`
+	Username string `gorm:"type:varchar(36);unique_index" json:"username,omitempty"`
+	Password string `json:"-,omitempty"`
+	Email    string `gorm:"type:varchar(100)" json:"email,omitempty"`
+	Phone    string `gorm:"type:varchar(11)" json:"phone,omitempty"`
 
-	UserAuthorizeds []UserAuthorized
-	Logins          []Login
+	UserAuthorizeds []UserAuthorized `json:"-"`
+	Logins          []Login          `json:"-"`
 }
 
 // DataDesensitization 数据去敏
@@ -35,5 +35,7 @@ func (u *User) DataDesensitization() User {
 		pubPhone = append(pubPhone, u.Phone[7:11]...)
 		u.Phone = string(pubPhone)
 	}
+
+	u.UserAuthorizeds = nil
 	return *u
 }
