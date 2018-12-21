@@ -42,6 +42,10 @@ var (
 	DB *gorm.DB
 	// ValidatorTrans 翻译工具
 	ValidatorTrans ut.Translator
+	// Scopes 可以使用的 scope 列表
+	Scopes = map[string]string{
+		"baseinfo": "获取用户基本信息",
+	}
 )
 
 func init() {

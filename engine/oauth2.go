@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"git.cm/naiba/ucenter"
 
@@ -36,17 +37,40 @@ func oauth2auth(c *gin.Context) {
 					ar.Authorized = true
 					OsinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 				} else {
+					// 需要选择授予权限
+					if len(user.UserAuthorizeds) == 1 {
+						user.UserAuthorizeds[0].DecodeScope()
+					}
 					oc, _ := ucenter.ParseClient(ar.Client)
-					c.HTML(http.StatusOK, "page/auth", gin.H{
-						"User":   user,
-						"Client": oc,
-					})
-					return
+					scopes := strings.Split(ar.Scope, ",")
+
+					var checkPerms = make(map[string]bool)
+					for _, scope := range scopes {
+						if _, has := ucenter.Scopes[scope]; !has {
+							resp.SetError(osin.E_INVALID_SCOPE, "不支持的Scope。")
+							break
+						}
+						if len(user.UserAuthorizeds) == 1 {
+							checkPerms[scope] = user.UserAuthorizeds[0].ScopePermX[scope]
+						} else {
+							checkPerms[scope] = true
+						}
+					}
+
+					if !resp.IsError {
+						c.HTML(http.StatusOK, "page/auth", gin.H{
+							"User":   user,
+							"Client": oc,
+							"Check":  checkPerms,
+							"Scopes": ucenter.Scopes,
+						})
+						return
+					}
 				}
 			} else if c.Request.Method == http.MethodPost {
 
 			} else {
-				resp.SetError("not supported method", "不支持的请求方式哦。")
+				resp.SetError(osin.E_INVALID_REQUEST, "不支持的请求方式哦。")
 			}
 		} else {
 			resp.SetRedirect("/login?from=" + url.QueryEscape(c.Request.RequestURI))
