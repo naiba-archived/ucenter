@@ -54,7 +54,7 @@ func loginHandler(c *gin.Context) {
 
 	rawUA := c.Request.UserAgent()
 	ua := user_agent.New(rawUA)
-	var loginClient ucenter.LoginClient
+	var loginClient ucenter.Login
 	loginClient.UserID = u.ID
 	loginClient.Token = com.MD5(rawUA + time.Now().String() + u.Username)
 	browser, _ := ua.Browser()

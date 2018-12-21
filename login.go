@@ -6,13 +6,14 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// LoginClient 登录的终端
-type LoginClient struct {
+// Login 登录的终端
+type Login struct {
 	gorm.Model
-	User   User
 	UserID uint
 	Name   string
 	IP     string
 	Token  string
 	Expire time.Time
+
+	User User
 }

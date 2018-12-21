@@ -23,7 +23,7 @@ func authorizeMiddleware(c *gin.Context) {
 	// 1. 从 Cookie 认证
 	tk, err := c.Cookie(ucenter.AuthCookieName)
 	if err == nil {
-		var loginClient ucenter.LoginClient
+		var loginClient ucenter.Login
 		if ucenter.DB.Preload("User").Where("token = ?", tk).First(&loginClient).Error == nil {
 			authorizedUser = &loginClient.User
 			c.Set(ucenter.AuthType, ucenter.AuthTypeCookie)

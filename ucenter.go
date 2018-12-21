@@ -50,8 +50,9 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	DB = DB.Debug()
 	// 创建数据表
-	DB.AutoMigrate(&User{}, &LoginClient{})
+	DB.AutoMigrate(&User{}, &Login{}, &UserAuthorized{})
 	// 初始化错误翻译
 	uni := ut.New(en.New(), cn.New())
 	var found bool

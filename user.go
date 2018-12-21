@@ -13,20 +13,27 @@ type User struct {
 	Password string `json:"-"`
 	Email    string `gorm:"type:varchar(100)"`
 	Phone    string `gorm:"type:varchar(11)"`
+
+	UserAuthorizeds []UserAuthorized
+	Logins          []Login
 }
 
 // DataDesensitization 数据去敏
 func (u *User) DataDesensitization() User {
-	pubEmail := make([]byte, 0)
-	pubEmail = append(pubEmail, u.Email[0])
-	pubEmail = append(pubEmail, []byte("****")...)
-	pubEmail = append(pubEmail, u.Email[strings.LastIndex(u.Email, "@"):]...)
-	u.Email = string(pubEmail)
+	if len(u.Email) > 0 {
+		pubEmail := make([]byte, 0)
+		pubEmail = append(pubEmail, u.Email[0])
+		pubEmail = append(pubEmail, []byte("****")...)
+		pubEmail = append(pubEmail, u.Email[strings.LastIndex(u.Email, "@"):]...)
+		u.Email = string(pubEmail)
+	}
 
-	pubPhone := make([]byte, 0)
-	pubPhone = append(pubPhone, u.Phone[0:4]...)
-	pubPhone = append(pubPhone, []byte("****")...)
-	pubPhone = append(pubPhone, u.Phone[7:11]...)
-	u.Phone = string(pubPhone)
+	if len(u.Phone) > 0 {
+		pubPhone := make([]byte, 0)
+		pubPhone = append(pubPhone, u.Phone[0:4]...)
+		pubPhone = append(pubPhone, []byte("****")...)
+		pubPhone = append(pubPhone, u.Phone[7:11]...)
+		u.Phone = string(pubPhone)
+	}
 	return *u
 }

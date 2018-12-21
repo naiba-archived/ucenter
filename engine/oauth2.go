@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"net/url"
 
 	"git.cm/naiba/ucenter"
@@ -28,9 +29,25 @@ func oauth2auth(c *gin.Context) {
 	if ar := OsinServer.HandleAuthorizeRequest(resp, c.Request); ar != nil {
 		user := c.MustGet(ucenter.AuthUser).(*ucenter.User)
 		if user != nil {
-			ar.UserData = user.DataDesensitization()
-			ar.Authorized = true
-			OsinServer.FinishAuthorizeRequest(resp, c.Request, ar)
+			if c.Request.Method == http.MethodGet {
+				ucenter.DB.Model(user).Where("client_id = ?", ar.Client.GetId()).Association("UserAuthorizeds").Find(&user.UserAuthorizeds)
+				if len(user.UserAuthorizeds) == 1 && ar.Scope == user.UserAuthorizeds[0].Scope {
+					ar.UserData = user.DataDesensitization()
+					ar.Authorized = true
+					OsinServer.FinishAuthorizeRequest(resp, c.Request, ar)
+				} else {
+					oc, _ := ucenter.ParseClient(ar.Client)
+					c.HTML(http.StatusOK, "page/auth", gin.H{
+						"User":   user,
+						"Client": oc,
+					})
+					return
+				}
+			} else if c.Request.Method == http.MethodPost {
+
+			} else {
+				resp.SetError("not supported method", "不支持的请求方式哦。")
+			}
 		} else {
 			resp.SetRedirect("/login?from=" + url.QueryEscape(c.Request.RequestURI))
 		}
