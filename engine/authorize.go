@@ -10,7 +10,7 @@ import (
 )
 
 func authorizeMiddleware(c *gin.Context) {
-	//http://localhost:8080/oauth2/auth?response_type=code&client_id=1234&state=xyz&scope=everything&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fappauth%2Fcode
+	//http://localhost:8080/oauth2/auth?response_type=code&client_id=1234&state=xyz&scope=baseinfo,test&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fappauth%2Fcode
 	// 是否跳过认证
 	url := c.Request.URL.Path
 	for _, p := range c.Params {
