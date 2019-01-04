@@ -32,7 +32,7 @@ func authorizeMiddleware(c *gin.Context) {
 	// 2. 从 AccessToken 认证
 	bearer := osin.CheckBearerAuth(c.Request)
 	if bearer != nil {
-		ad, err := OsinStore.LoadAccess(bearer.Code)
+		ad, err := osinStore.LoadAccess(bearer.Code)
 		if err == nil && ad != nil && !ad.IsExpired() && ad.UserData != nil {
 			user := ad.UserData.(ucenter.User)
 			c.Set(ucenter.AuthType, ucenter.AuthTypeAccessToken)

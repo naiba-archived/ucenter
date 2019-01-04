@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"git.cm/naiba/ucenter"
 
@@ -14,20 +15,20 @@ import (
 )
 
 func oauth2info(c *gin.Context) {
-	resp := OsinServer.NewResponse()
+	resp := osinServer.NewResponse()
 	defer resp.Close()
 
-	if ir := OsinServer.HandleInfoRequest(resp, c.Request); ir != nil {
-		OsinServer.FinishInfoRequest(resp, c.Request, ir)
+	if ir := osinServer.HandleInfoRequest(resp, c.Request); ir != nil {
+		osinServer.FinishInfoRequest(resp, c.Request, ir)
 	}
 	osin.OutputJSON(resp, c.Writer, c.Request)
 }
 
 func oauth2auth(c *gin.Context) {
-	resp := OsinServer.NewResponse()
+	resp := osinServer.NewResponse()
 	defer resp.Close()
 
-	if ar := OsinServer.HandleAuthorizeRequest(resp, c.Request); ar != nil {
+	if ar := osinServer.HandleAuthorizeRequest(resp, c.Request); ar != nil {
 		user := c.MustGet(ucenter.AuthUser).(*ucenter.User)
 		if user != nil {
 			scopes := strings.Split(ar.Scope, ",")
@@ -37,7 +38,7 @@ func oauth2auth(c *gin.Context) {
 					// 用户已经授予权限
 					ar.UserData = user.DataDesensitization()
 					ar.Authorized = true
-					OsinServer.FinishAuthorizeRequest(resp, c.Request, ar)
+					osinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 				} else {
 					// 需要用户授予权限
 					if len(user.UserAuthorizeds) == 1 {
@@ -89,7 +90,7 @@ func oauth2auth(c *gin.Context) {
 					ua.UserID = user.ID
 					ua.ClientID = ar.Client.GetId()
 					ua.EncodeScope()
-					// 是新增还是更新
+					// 新增授权还是更新授权
 					var err error
 					if len(user.UserAuthorizeds) == 0 {
 						err = ucenter.DB.Save(&ua).Error
@@ -99,9 +100,37 @@ func oauth2auth(c *gin.Context) {
 					if err != nil {
 						resp.SetError(osin.E_SERVER_ERROR, err.Error())
 					} else {
-						ar.UserData = user.DataDesensitization()
+						// 认证通过标识
 						ar.Authorized = true
-						OsinServer.FinishAuthorizeRequest(resp, c.Request, ar)
+						// 如果是 OpenIDConnect，特殊照顾
+						if perms["openid"] {
+							now := time.Now()
+							idToken := IDToken{
+								Issuer:     "http://localhost:8080",
+								UserID:     user.StrID(),
+								ClientID:   ar.Client.GetId(),
+								Expiration: now.Add(time.Hour).Unix(),
+								IssuedAt:   now.Unix(),
+								Nonce:      c.Request.URL.Query().Get("nonce"),
+							}
+
+							if perms["profile"] {
+								idToken.Name = user.Username
+								idToken.GivenName = user.Username
+								idToken.FamilyName = ""
+								idToken.Locale = "zh-CN"
+							}
+
+							if perms["email"] {
+								t := true
+								idToken.Email = user.Email
+								idToken.EmailVerified = &t
+							}
+							ar.UserData = &idToken
+						} else {
+							ar.UserData = user.DataDesensitization()
+						}
+						osinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 					}
 				}
 			} else {
@@ -121,10 +150,10 @@ func oauth2auth(c *gin.Context) {
 }
 
 func oauth2token(c *gin.Context) {
-	resp := OsinServer.NewResponse()
+	resp := osinServer.NewResponse()
 	defer resp.Close()
 
-	if ar := OsinServer.HandleAccessRequest(resp, c.Request); ar != nil {
+	if ar := osinServer.HandleAccessRequest(resp, c.Request); ar != nil {
 		switch ar.Type {
 		case osin.AUTHORIZATION_CODE:
 			ar.Authorized = true
@@ -141,7 +170,12 @@ func oauth2token(c *gin.Context) {
 				ar.Authorized = true
 			}
 		}
-		OsinServer.FinishAccessRequest(resp, c.Request, ar)
+		osinServer.FinishAccessRequest(resp, c.Request, ar)
+
+		// If an ID Token was encoded as the UserData, serialize and sign it.
+		if idToken, ok := ar.UserData.(*IDToken); ok && idToken != nil {
+			encodeIDToken(resp, idToken, jwtSigner)
+		}
 	}
 	if resp.IsError && resp.InternalError != nil {
 		fmt.Printf("ERROR: %s\n", resp.InternalError)

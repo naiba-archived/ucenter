@@ -1,6 +1,7 @@
 package ucenter
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -38,4 +39,9 @@ func (u *User) DataDesensitization() User {
 
 	u.UserAuthorizeds = nil
 	return *u
+}
+
+// StrID 字符串ID
+func (u *User) StrID() string {
+	return fmt.Sprintf("%d", u.ID)
 }

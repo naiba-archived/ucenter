@@ -268,13 +268,16 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:64cbf54de6183132e134a9c38a95e6c06c43f0031a3140cc6a86d441f4fbecbb"
+  digest = "1:2cd961970350a336e1aa996737c6985e4757283a899b10de86854f57dfedd86a"
   name = "golang.org/x/crypto"
   packages = [
     "acme",
     "acme/autocert",
     "bcrypt",
     "blowfish",
+    "ed25519",
+    "ed25519/internal/edwards25519",
+    "pbkdf2",
   ]
   pruneopts = "UT"
   revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
@@ -425,6 +428,18 @@
   version = "v9.24.0"
 
 [[projects]]
+  digest = "1:377f8ccfbf9d7ff3997ea7454b894de46cd1d9fe6ec1e724c93ad59eb716c5c0"
+  name = "gopkg.in/square/go-jose.v2"
+  packages = [
+    ".",
+    "cipher",
+    "json",
+  ]
+  pruneopts = "UT"
+  revision = "e94fb177d3668d35ab39c61cbb2f311550557e83"
+  version = "v2.2.2"
+
+[[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -450,6 +465,7 @@
     "golang.org/x/crypto/bcrypt",
     "gopkg.in/go-playground/validator.v9",
     "gopkg.in/go-playground/validator.v9/translations/zh",
+    "gopkg.in/square/go-jose.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
