@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/pem"
 	"log"
-	"net/http"
 
 	"github.com/RangelReale/osin"
 	mysql "github.com/felipeweb/osin-mysql"
@@ -112,6 +111,7 @@ func ServWeb() {
 	binding.Validator = new(nbgin.DefaultValidator)
 	r := gin.Default()
 	r.LoadHTMLGlob("template/**/*")
+	r.Static("static", "static")
 
 	// 鉴权
 	r.Use(authorizeMiddleware)
@@ -125,12 +125,7 @@ func ServWeb() {
 	r.POST("/signup", signupHandler)
 
 	// 用户中心
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, map[string]interface{}{
-			"user": c.MustGet(ucenter.AuthUser),
-			"auth": c.MustGet(ucenter.AuthType),
-		})
-	})
+	r.GET("/", index)
 
 	// Oauth2
 	o := r.Group("oauth2")

@@ -22,11 +22,13 @@ const (
 	AuthTypeCookie = "ctx_auth_type_cookie"
 	// AuthTypeAccessToken 通过AccessToken验证
 	AuthTypeAccessToken = "ctx_auth_type_access_token"
-
+	// RequestRouter 请求的路由路径
+	RequestRouter = "ctx_request_router"
 	// AuthUser 通过验证的用户
 	AuthUser = "ctx_auth_user"
 	// AuthCookieName Web验证用的Cookie名称
 	AuthCookieName = "nb_uctoken"
+
 	// AuthCookieExpiretion Web验证用的Cookie过期时间
 	AuthCookieExpiretion = time.Hour * 24 * 60
 	// DBDSN 数据库连接字符串
@@ -40,6 +42,7 @@ var (
 	RouterSkipAuthorize = map[string]interface{}{
 		"/login":  nil,
 		"/signup": nil,
+		"/static": nil,
 	}
 	// RAM 权限系统
 	RAM *casbin.Enforcer

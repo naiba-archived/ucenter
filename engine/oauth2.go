@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/naiba/ucenter/pkg/nbgin"
+
 	"github.com/naiba/ucenter"
 
 	"github.com/RangelReale/osin"
@@ -61,12 +63,12 @@ func oauth2auth(c *gin.Context) {
 
 					// 权限授予界面
 					if !resp.IsError {
-						c.HTML(http.StatusOK, "page/auth", gin.H{
+						c.HTML(http.StatusOK, "page/auth", nbgin.Data(c, gin.H{
 							"User":   user,
 							"Client": oc,
 							"Check":  checkPerms,
 							"Scopes": ucenter.Scopes,
-						})
+						}))
 						return
 					}
 				}

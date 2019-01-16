@@ -17,8 +17,12 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+func index(c *gin.Context) {
+	c.HTML(http.StatusOK, "page/index", nbgin.Data(c, gin.H{}))
+}
+
 func login(c *gin.Context) {
-	c.HTML(http.StatusOK, "page/login", gin.H{})
+	c.HTML(http.StatusOK, "page/login", nbgin.Data(c, gin.H{}))
 }
 
 func loginHandler(c *gin.Context) {
@@ -44,12 +48,12 @@ func loginHandler(c *gin.Context) {
 	}
 
 	if errors != nil {
-		c.HTML(http.StatusOK, "page/login", gin.H{
+		c.HTML(http.StatusOK, "page/login", nbgin.Data(c, gin.H{
 			"errors": map[string]interface{}{
 				"Username": errors["loginForm.用户名"],
 				"Password": errors["loginForm.密码"],
 			},
-		})
+		}))
 		return
 	}
 
@@ -76,7 +80,7 @@ func loginHandler(c *gin.Context) {
 }
 
 func signup(c *gin.Context) {
-	c.HTML(http.StatusOK, "page/signup", gin.H{})
+	c.HTML(http.StatusOK, "page/signup", nbgin.Data(c, gin.H{}))
 }
 
 func signupHandler(c *gin.Context) {
@@ -96,13 +100,13 @@ func signupHandler(c *gin.Context) {
 		}
 	}
 	if errors != nil {
-		c.HTML(http.StatusOK, "page/signup", gin.H{
+		c.HTML(http.StatusOK, "page/signup", nbgin.Data(c, gin.H{
 			"errors": map[string]interface{}{
 				"Username":   errors["signUpForm.用户名"],
 				"Password":   errors["signUpForm.密码"],
 				"RePassword": errors["signUpForm.确认密码"],
 			},
-		})
+		}))
 		return
 	}
 	u.Username = suf.Username

@@ -10,6 +10,7 @@ import (
 // User 用户表
 type User struct {
 	gorm.Model
+	Avatar   string `json:"avatar,omitempty"`
 	Username string `gorm:"type:varchar(36);unique_index" json:"username,omitempty"`
 	Password string `json:"-"`
 	Email    string `gorm:"type:varchar(100)" json:"email,omitempty"`
@@ -31,9 +32,9 @@ func (u *User) DataDesensitization() User {
 
 	if len(u.Phone) > 0 {
 		pubPhone := make([]byte, 0)
-		pubPhone = append(pubPhone, u.Phone[0:4]...)
+		pubPhone = append(pubPhone, u.Phone[:4]...)
 		pubPhone = append(pubPhone, []byte("****")...)
-		pubPhone = append(pubPhone, u.Phone[7:11]...)
+		pubPhone = append(pubPhone, u.Phone[9:]...)
 		u.Phone = string(pubPhone)
 	}
 
