@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"git.cm/naiba/ucenter"
+	"github.com/naiba/ucenter"
 
 	"github.com/gin-gonic/gin/binding"
 	validator "gopkg.in/go-playground/validator.v9"

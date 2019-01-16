@@ -6,12 +6,12 @@ import (
 	"encoding/pem"
 	"log"
 
-	"git.cm/naiba/ucenter"
-	"git.cm/naiba/ucenter/pkg/nbgin"
 	"github.com/RangelReale/osin"
 	mysql "github.com/felipeweb/osin-mysql"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/naiba/ucenter"
+	"github.com/naiba/ucenter/pkg/nbgin"
 
 	// MySQL Driver
 	_ "github.com/jinzhu/gorm/dialects/mysql"

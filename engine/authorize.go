@@ -5,8 +5,8 @@ import (
 
 	"github.com/RangelReale/osin"
 
-	"git.cm/naiba/ucenter"
 	"github.com/gin-gonic/gin"
+	"github.com/naiba/ucenter"
 )
 
 func authorizeMiddleware(c *gin.Context) {

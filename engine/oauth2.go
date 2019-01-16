@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"git.cm/naiba/ucenter"
+	"github.com/naiba/ucenter"
 
 	"github.com/RangelReale/osin"
 	"github.com/gin-gonic/gin"

@@ -1,8 +1,8 @@
 package nbgin
 
 import (
-	"git.cm/naiba/ucenter"
 	"github.com/gin-gonic/gin"
+	"github.com/naiba/ucenter"
 )
 
 // SetCookie 设置Cookie

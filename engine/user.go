@@ -8,10 +8,10 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/naiba/com"
 
-	"git.cm/naiba/ucenter"
-	"git.cm/naiba/ucenter/pkg/nbgin"
 	"github.com/gin-gonic/gin"
 	"github.com/mssola/user_agent"
+	"github.com/naiba/ucenter"
+	"github.com/naiba/ucenter/pkg/nbgin"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/go-playground/validator.v9"
 )

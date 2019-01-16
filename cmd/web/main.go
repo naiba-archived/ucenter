@@ -1,7 +1,7 @@
 package main
 
 import (
-	"git.cm/naiba/ucenter/engine"
+	"github.com/naiba/ucenter/engine"
 )
 
 func main() {
