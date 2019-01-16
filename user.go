@@ -11,7 +11,7 @@ import (
 type User struct {
 	gorm.Model
 	Username string `gorm:"type:varchar(36);unique_index" json:"username,omitempty"`
-	Password string `json:"-,omitempty"`
+	Password string `json:"-"`
 	Email    string `gorm:"type:varchar(100)" json:"email,omitempty"`
 	Phone    string `gorm:"type:varchar(11)" json:"phone,omitempty"`
 

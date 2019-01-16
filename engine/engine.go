@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/pem"
 	"log"
+	"net/http"
 
 	"github.com/RangelReale/osin"
 	mysql "github.com/felipeweb/osin-mysql"
@@ -122,6 +123,14 @@ func ServWeb() {
 	// 注册
 	r.GET("/signup", signup)
 	r.POST("/signup", signupHandler)
+
+	// 用户中心
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"user": c.MustGet(ucenter.AuthUser),
+			"auth": c.MustGet(ucenter.AuthType),
+		})
+	})
 
 	// Oauth2
 	o := r.Group("oauth2")
