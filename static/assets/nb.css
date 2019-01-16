@@ -1,0 +1,22 @@
+/* Override Semantic's style */
+.ui.container:not(.fluid) {
+  width: 980px !important;
+}
+@media only screen and (min-width: 1200px) {
+  .ui.container {
+    width: 1127px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+/* Additional style */
+.navbar {
+  border-bottom: 1px solid #dddddd;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.04);
+}
+.full-height {
+  min-height: 100%;
+}
+.login-form {
+  max-width: 450px;
+}

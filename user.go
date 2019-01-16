@@ -10,7 +10,6 @@ import (
 // User 用户表
 type User struct {
 	gorm.Model
-	Avatar   string `json:"avatar,omitempty"`
 	Username string `gorm:"type:varchar(36);unique_index" json:"username,omitempty"`
 	Password string `json:"-"`
 	Email    string `gorm:"type:varchar(100)" json:"email,omitempty"`

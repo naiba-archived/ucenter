@@ -125,13 +125,17 @@ func ServWeb() {
 	r.POST("/signup", signupHandler)
 
 	// 用户中心
-	r.GET("/", index)
+	mustLoginRoute := r.Group("")
+	mustLoginRoute.Use(anonymousMustLogin)
+	{
+		mustLoginRoute.GET("/", index)
+	}
 
 	// Oauth2
 	o := r.Group("oauth2")
 	{
 		// Authorization code endpoint
-		o.Any("auth", oauth2auth)
+		o.Any("oauth2/auth", oauth2auth)
 		// Access token endpoint
 		o.Any("token", oauth2token)
 		o.Any("info", oauth2info)

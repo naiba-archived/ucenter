@@ -1,31 +1,22 @@
 {{define "page/login"}}
 {{template "common/header" .}}
-<style type="text/css">
-    body>.grid {
-        height: 100%;
-    }
-
-    .column {
-        max-width: 450px;
-    }
-</style>
-<div class="ui middle aligned center aligned grid">
-    <div class="column">
+<div class="ui middle aligned center aligned grid full-height">
+    <div class="column login-form">
         <h2 class="ui image header">
             <img src="https://images.gitee.com/uploads/enterprise_logo/5301244449.png" class="image">
             <div class="content">
                 用户登录
             </div>
         </h2>
-        <form class="ui large form{{if or .errors.Username .errors.Password}} error{{end}}" method="POST">
+        <form class="ui large form{{if or .data.errors.Username .data.errors.Password}} error{{end}}" method="POST">
             <div class="ui stacked segment">
-                <div class="field{{if .errors.Username}} error{{end}}">
+                <div class="field{{if .data.errors.Username}} error{{end}}">
                     <div class="ui left icon input">
                         <i class="user icon"></i>
                         <input type="text" name="username" placeholder="用户名">
                     </div>
                 </div>
-                <div class="field{{if .errors.Password}} error{{end}}">
+                <div class="field{{if .data.errors.Password}} error{{end}}">
                     <div class="ui left icon input">
                         <i class="lock icon"></i>
                         <input type="password" name="password" placeholder="密码">
@@ -35,10 +26,10 @@
             </div>
 
             <div class="ui error message">
-                {{if or .errors.Username .errors.Password}}
+                {{if or .data.errors.Username .data.errors.Password}}
                 <ul class="list">
-                    {{if .errors.Username}}<li>{{.errors.Username}}</li>{{end}}
-                    {{if .errors.Password}}<li>{{.errors.Password}}</li>{{end}}
+                    {{if .data.errors.Username}}<li>{{.data.errors.Username}}</li>{{end}}
+                    {{if .data.errors.Password}}<li>{{.data.errors.Password}}</li>{{end}}
                 </ul>
                 {{end}}
             </div>

@@ -25,6 +25,12 @@ func login(c *gin.Context) {
 	c.HTML(http.StatusOK, "page/login", nbgin.Data(c, gin.H{}))
 }
 
+func logout(c *gin.Context) {
+	nbgin.SetCookie(c, ucenter.AuthCookieName, "")
+	nbgin.SetNoCache(c)
+	c.Redirect(http.StatusTemporaryRedirect, "/login")
+}
+
 func loginHandler(c *gin.Context) {
 	type loginForm struct {
 		Username string `form:"username" cfn:"用户名" binding:"required,min=2,max=12"`
@@ -71,7 +77,7 @@ func loginHandler(c *gin.Context) {
 		return
 	}
 	nbgin.SetCookie(c, ucenter.AuthCookieName, loginClient.Token)
-	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+	nbgin.SetNoCache(c)
 	if from := c.Query("from"); strings.HasPrefix(from, "/") {
 		c.Redirect(http.StatusFound, from)
 		return

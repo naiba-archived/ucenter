@@ -1,6 +1,9 @@
 package engine
 
 import (
+	"log"
+	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/RangelReale/osin"
@@ -8,6 +11,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/naiba/ucenter"
 )
+
+func anonymousMustLogin(c *gin.Context) {
+	_, ok := c.Get(ucenter.AuthUser)
+	log.Println(ok)
+	if !ok {
+		c.Redirect(http.StatusTemporaryRedirect, "/login?from="+url.QueryEscape(c.Request.RequestURI))
+		c.Abort()
+	}
+}
 
 func authorizeMiddleware(c *gin.Context) {
 	//http://localhost:8080/oauth2/auth?response_type=code&client_id=1234&state=xyz&scope=baseinfo,test&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fappauth%2Fcode
@@ -40,5 +52,7 @@ func authorizeMiddleware(c *gin.Context) {
 			c.Set(ucenter.AuthType, ucenter.AuthTypeAccessToken)
 		}
 	}
-	c.Set(ucenter.AuthUser, authorizedUser)
+	if authorizedUser != nil {
+		c.Set(ucenter.AuthUser, authorizedUser)
+	}
 }
