@@ -42,9 +42,9 @@ func oauth2auth(c *gin.Context) {
 				} else {
 					// 需要用户授予权限
 					if len(user.UserAuthorizeds) == 1 {
-						user.UserAuthorizeds[0].DecodeScope()
+						user.UserAuthorizeds[0].DecodePermission()
 					}
-					oc, _ := ucenter.ParseClient(ar.Client)
+					oc, _ := ucenter.ToOauth2Client(ar.Client)
 					var checkPerms = make(map[string]bool)
 					for _, scope := range scopes {
 						// 判断scope合法性
@@ -53,7 +53,7 @@ func oauth2auth(c *gin.Context) {
 							break
 						}
 						if len(user.UserAuthorizeds) == 1 {
-							checkPerms[scope] = user.UserAuthorizeds[0].ScopePermX[scope]
+							checkPerms[scope] = user.UserAuthorizeds[0].Permission[scope]
 						} else {
 							checkPerms[scope] = true
 						}
@@ -86,10 +86,10 @@ func oauth2auth(c *gin.Context) {
 						ua = user.UserAuthorizeds[0]
 					}
 					ua.Scope = ar.Scope
-					ua.ScopePermX = perms
+					ua.Permission = perms
 					ua.UserID = user.ID
 					ua.ClientID = ar.Client.GetId()
-					ua.EncodeScope()
+					ua.EncodePermission()
 					// 新增授权还是更新授权
 					var err error
 					if len(user.UserAuthorizeds) == 0 {

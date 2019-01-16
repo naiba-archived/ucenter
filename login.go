@@ -6,10 +6,10 @@ import (
 
 // Login 登录的终端
 type Login struct {
+	Token     string `gorm:"primary_key"`
 	UserID    uint
 	Name      string
 	IP        string
-	Token     string `gorm:"primary_key"`
 	Expire    time.Time
 	CreatedAt time.Time
 

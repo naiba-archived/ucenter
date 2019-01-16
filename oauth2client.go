@@ -18,8 +18,8 @@ type Oauth2Client struct {
 	}
 }
 
-// ParseClient 转换为客户端Model
-func ParseClient(oc osin.Client) (*Oauth2Client, error) {
+// ToOauth2Client 转换为客户端Model
+func ToOauth2Client(oc osin.Client) (*Oauth2Client, error) {
 	var err error
 	c := new(Oauth2Client)
 	err = json.Unmarshal([]byte(oc.GetUserData().(string)), &c.Ext)

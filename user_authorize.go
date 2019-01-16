@@ -2,29 +2,29 @@ package ucenter
 
 import (
 	"encoding/json"
-
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 // UserAuthorized 用户已授权的应用
 type UserAuthorized struct {
-	gorm.Model
-	UserID     uint
-	Scope      string
-	ScopePerm  string
-	ScopePermX map[string]bool `gorm:"-"`
-	ClientID   string
+	UserID        uint   `gorm:"index"`
+	ClientID      string `gorm:"index"`
+	Scope         string
+	PermissionRaw string
+	Permission    map[string]bool `gorm:"-"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 
 	User User
 }
 
-// DecodeScope 解码scope
-func (ua *UserAuthorized) DecodeScope() {
-	json.Unmarshal([]byte(ua.ScopePerm), &ua.ScopePermX)
+// DecodePermission 解码用户授权
+func (ua *UserAuthorized) DecodePermission() {
+	json.Unmarshal([]byte(ua.PermissionRaw), &ua.Permission)
 }
 
-// EncodeScope 编码scope
-func (ua *UserAuthorized) EncodeScope() {
-	b, _ := json.Marshal(ua.ScopePermX)
-	ua.ScopePerm = string(b)
+// EncodePermission 编码用户授权
+func (ua *UserAuthorized) EncodePermission() {
+	b, _ := json.Marshal(ua.Permission)
+	ua.PermissionRaw = string(b)
 }
