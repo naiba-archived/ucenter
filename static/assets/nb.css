@@ -1,8 +1,4 @@
 /* Override Semantic's style */
-.ui.segment {
-  border: none;
-  box-shadow: none;
-}
 .ui.container:not(.fluid) {
   max-width: 980px !important;
 }
@@ -14,6 +10,10 @@
   }
 }
 /* Additional style */
+.clear-shadow-and-border {
+  border: none !important;
+  box-shadow: none !important;
+}
 .navbar {
   border-bottom: 1px solid #dddddd;
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.04);

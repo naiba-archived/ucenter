@@ -31,8 +31,9 @@ func oauth2auth(c *gin.Context) {
 	defer resp.Close()
 
 	if ar := osinServer.HandleAuthorizeRequest(resp, c.Request); ar != nil {
-		user := c.MustGet(ucenter.AuthUser).(*ucenter.User)
-		if user != nil {
+		user, ok := c.Get(ucenter.AuthUser)
+		if ok {
+			user := user.(*ucenter.User)
 			scopes := strings.Split(ar.Scope, ",")
 			ucenter.DB.Model(user).Where("client_id = ?", ar.Client.GetId()).Association("UserAuthorizeds").Find(&user.UserAuthorizeds)
 			if c.Request.Method == http.MethodGet {
@@ -140,7 +141,7 @@ func oauth2auth(c *gin.Context) {
 			}
 		} else {
 			// 用户未登录，跳转登录界面
-			resp.SetRedirect("/login?from=" + url.QueryEscape(c.Request.RequestURI))
+			resp.SetRedirect("/login?return_url=" + url.QueryEscape(c.Request.RequestURI))
 		}
 	}
 

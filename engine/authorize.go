@@ -16,7 +16,7 @@ func anonymousMustLogin(c *gin.Context) {
 	_, ok := c.Get(ucenter.AuthUser)
 	log.Println(ok)
 	if !ok {
-		c.Redirect(http.StatusTemporaryRedirect, "/login?from="+url.QueryEscape(c.Request.RequestURI))
+		c.Redirect(http.StatusTemporaryRedirect, "/login?return_url="+url.QueryEscape(c.Request.RequestURI))
 		c.Abort()
 	}
 }

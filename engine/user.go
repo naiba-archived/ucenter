@@ -26,9 +26,17 @@ func login(c *gin.Context) {
 }
 
 func logout(c *gin.Context) {
+	if !strings.Contains(c.Request.Referer(), "://"+ucenter.Domain) {
+		c.String(http.StatusForbidden, "CSRF Protection")
+		return
+	}
 	nbgin.SetCookie(c, -1, ucenter.AuthCookieName, "")
 	nbgin.SetNoCache(c)
-	c.Redirect(http.StatusTemporaryRedirect, "/login")
+	if return_url := c.Query("return_url"); strings.HasPrefix(return_url, "/") {
+		c.Redirect(http.StatusFound, return_url)
+	} else {
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+	}
 }
 
 func loginHandler(c *gin.Context) {
@@ -78,8 +86,8 @@ func loginHandler(c *gin.Context) {
 	}
 	nbgin.SetCookie(c, 60*60*24*365*2, ucenter.AuthCookieName, loginClient.Token)
 	nbgin.SetNoCache(c)
-	if from := c.Query("from"); strings.HasPrefix(from, "/") {
-		c.Redirect(http.StatusFound, from)
+	if return_url := c.Query("return_url"); strings.HasPrefix(return_url, "/") {
+		c.Redirect(http.StatusFound, return_url)
 		return
 	}
 	c.String(http.StatusOK, "登录成功")

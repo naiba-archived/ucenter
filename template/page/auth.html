@@ -48,7 +48,7 @@
   $(document).ready(() => {
     $(".ui.checkbox").checkbox()
     $(".ui.form").form()
-    $("#switchUser").attr('href', '/logout?from=' + encodeURIComponent(window.location.pathname + window.location.search))
+    $("#switchUser").attr('href', '/logout?return_url=' + encodeURIComponent(window.location.pathname + window.location.search))
   })
 </script>
 {{template "common/footer" .}} {{ end }}
