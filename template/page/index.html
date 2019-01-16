@@ -1,17 +1,39 @@
 {{define "page/index"}} {{template "common/header" .}}
-<div class="navbar">
-  <div class="ui container">
-    <div class="ui secondary menu">
-      <div class="item">
-        <img src="/static/assets/favicon.png" /> &nbsp;&nbsp;
-      </div>
-      <div class="ui right dropdown item">
-        {{.user.Username}} <i class="dropdown icon"></i>
-        <div class="menu"><a href="/logout" class="item">登出</a></div>
+<div class="full-height">
+  <div class="navbar">
+    <div class="ui container">
+      <div class="ui secondary menu">
+        <div class="item">
+          <img src="/static/assets/favicon.png" /> &nbsp;&nbsp;
+        </div>
+        <div class="ui right dropdown item">
+          {{.user.Username}} <i class="dropdown icon"></i>
+          <div class="menu">
+            <a href="/" class="item">个人中心</a>
+            <a href="/" class="item">修改资料</a>
+            <a href="/logout" class="item">登出</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+  <div class="ui container segment">
+    <div class="ui card">
+      <div class="image"><img src="/static/assets/favicon.png" /></div>
+      <div class="content">
+        <a class="header">{{.user.Username}}</a>
+        <div class="meta"><span class="date">{{.user.CreatedAt}} 加入</span></div>
+        <div class="description">
+          {{.user.Bio}}
+        </div>
+      </div>
+      <div class="ui bottom attached button"><i class="edit icon"></i> 修改资料 </div>
+    </div>
+  </div>
 </div>
+<footer class="navbar-bottom">
+  <div class="ui container">&copy; 2019 聚力向前（北京）科技有限公司</div>
+</footer>
 <script>
   $(".ui.dropdown").dropdown();
 </script>

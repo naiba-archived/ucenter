@@ -38,7 +38,7 @@ func oauth2auth(c *gin.Context) {
 			if c.Request.Method == http.MethodGet {
 				if len(user.UserAuthorizeds) == 1 && ar.Scope == user.UserAuthorizeds[0].Scope {
 					// 用户已经授予权限
-					ar.UserData = user.DataDesensitization()
+					ar.UserData = user
 					ar.Authorized = true
 					osinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 				} else {
@@ -89,7 +89,7 @@ func oauth2auth(c *gin.Context) {
 					}
 					ua.Scope = ar.Scope
 					ua.Permission = perms
-					ua.UserID = user.ID
+					ua.Username = user.Username
 					ua.ClientID = ar.Client.GetId()
 					ua.EncodePermission()
 					// 新增授权还是更新授权
@@ -109,7 +109,7 @@ func oauth2auth(c *gin.Context) {
 							now := time.Now()
 							idToken := IDToken{
 								Issuer:     "http://localhost:8080",
-								UserID:     user.StrID(),
+								UserID:     user.Username,
 								ClientID:   ar.Client.GetId(),
 								Expiration: now.Add(time.Hour).Unix(),
 								IssuedAt:   now.Unix(),
@@ -125,12 +125,12 @@ func oauth2auth(c *gin.Context) {
 
 							if perms["email"] {
 								t := true
-								idToken.Email = user.Email
+								idToken.Email = ""
 								idToken.EmailVerified = &t
 							}
 							ar.UserData = &idToken
 						} else {
-							ar.UserData = user.DataDesensitization()
+							ar.UserData = user
 						}
 						osinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 					}

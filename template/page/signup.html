@@ -1,102 +1,101 @@
-{{define "page/signup"}}
-{{template "common/header" .}}
+{{define "page/signup"}} {{template "common/header" .}}
 <div class="ui middle aligned center aligned grid full-height">
-    <div class="column login-form">
-        <h2 class="ui image header">
-            <img src="https://images.gitee.com/uploads/enterprise_logo/5301244449.png" class="image">
-            <div class="content">
-                用户注册
-            </div>
-        </h2>
-        <form class="ui large form{{if or .data.errors.Username .data.errors.Password}} error{{end}}" method="POST">
-            <div class="ui stacked segment">
-                <div class="field{{if .data.errors.Username}} error{{end}}">
-                    <div class="ui left icon input">
-                        <i class="user icon"></i>
-                        <input type="text" name="username" placeholder="用户名">
-                    </div>
-                </div>
-                <div class="field{{if .data.errors.Password}} error{{end}}">
-                    <div class="ui left icon input">
-                        <i class="lock icon"></i>
-                        <input type="password" name="password" placeholder="密码">
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="lock icon"></i>
-                        <input type="password" name="repassword" placeholder="确认密码">
-                    </div>
-                </div>
-                <div class="ui fluid large submit button">注册</div>
-            </div>
-
-            <div class="ui error message">
-                {{if or .data.errors.Username .data.errors.Password}}
-                <ul class="list">
-                    {{if .data.errors.Username}}<li>{{.errors.Username}}</li>{{end}}
-                    {{if .data.errors.Password}}<li>{{.errors.Password}}</li>{{end}}
-                </ul>
-                {{end}}
-            </div>
-
-        </form>
-
-        <div class="ui message">
-            已有账号？ <a id="login">登录</a>
+  <div class="column login-form">
+    <h2 class="ui image header">
+      <img src="https://images.gitee.com/uploads/enterprise_logo/5301244449.png" class="image" />
+      <div class="content">用户注册</div>
+    </h2>
+    <form class="ui large form{{if or .data.errors.Username .data.errors.Password}} error{{ end }}" method="POST">
+      <div class="ui stacked segment">
+        <div class="field{{if .data.errors.Username}} error{{ end }}">
+          <div class="ui left icon input">
+            <i class="user icon"></i>
+            <input type="text" name="username" placeholder="用户名" />
+          </div>
         </div>
-    </div>
+        <div class="field{{if .data.errors.Password}} error{{ end }}">
+          <div class="ui left icon input">
+            <i class="lock icon"></i>
+            <input type="password" name="password" placeholder="密码" />
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui left icon input">
+            <i class="lock icon"></i>
+            <input type="password" name="repassword" placeholder="确认密码" />
+          </div>
+        </div>
+        <div class="ui fluid large submit button">注册</div>
+      </div>
+
+      <div class="ui error message">
+        {{if or .data.errors.Username .data.errors.Password}}
+        <ul class="list">
+          {{if .data.errors.Username}}
+          <li>{{.errors.Username}}</li>
+          {{ end }}
+          {{if .data.errors.Password}}
+          <li>{{.errors.Password}}</li>
+          {{ end }}
+        </ul>
+        {{ end }}
+      </div>
+    </form>
+
+    <div class="ui message">已有账号？ <a id="login">登录</a></div>
+  </div>
 </div>
 
 <script>
-    $(document)
-        .ready(function () {
-            $('#login').attr('href', '/login' + $(location).attr('search'))
-            $('.ui.form')
-                .form({
-                    fields: {
-                        email: {
-                            identifier: 'username',
-                            rules: [{
-                                    type: 'empty',
-                                    prompt: '用户名不能为空'
-                                },
-                                {
-                                    type: 'minLength[2]',
-                                    prompt: '用户名长度最短 2 位'
-                                },
-                                {
-                                    type: 'maxLength[12]',
-                                    prompt: '用户名长度最长 12 位'
-                                }
-                            ]
-                        },
-                        password: {
-                            identifier: 'password',
-                            rules: [{
-                                    type: 'empty',
-                                    prompt: '密码不能为空'
-                                },
-                                {
-                                    type: 'minLength[6]',
-                                    prompt: '密码最短 6 位'
-                                },
-                                {
-                                    type: 'maxLength[32]',
-                                    prompt: '密码最长 32 位'
-                                }
-                            ]
-                        },
-                        repassword: {
-                            identifier: 'repassword',
-                            rules: [{
-                                type: 'match[password]',
-                                prompt: '两次输入不一致'
-                            }]
-                        }
-                    }
-                });
-        });
+  $(document).ready(function () {
+    $("#login").attr("href", "/login" + $(location).attr("search"));
+    $(".ui.form").form({
+      fields: {
+        email: {
+          identifier: "username",
+          rules: [
+            {
+              type: "empty",
+              prompt: "用户名不能为空"
+            },
+            {
+              type: "minLength[2]",
+              prompt: "用户名长度最短 2 位"
+            },
+            {
+              type: "maxLength[12]",
+              prompt: "用户名长度最长 12 位"
+            }
+          ]
+        },
+        password: {
+          identifier: "password",
+          rules: [
+            {
+              type: "empty",
+              prompt: "密码不能为空"
+            },
+            {
+              type: "minLength[6]",
+              prompt: "密码最短 6 位"
+            },
+            {
+              type: "maxLength[32]",
+              prompt: "密码最长 32 位"
+            }
+          ]
+        },
+        repassword: {
+          identifier: "repassword",
+          rules: [
+            {
+              type: "match[password]",
+              prompt: "两次输入不一致"
+            }
+          ]
+        }
+      }
+    });
+  });
 </script>
-{{template "common/footer" .}}
-{{end}}
+{{template "common/footer" .}} {{ end }}

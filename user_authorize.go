@@ -7,7 +7,7 @@ import (
 
 // UserAuthorized 用户已授权的应用
 type UserAuthorized struct {
-	UserID        uint   `gorm:"index"`
+	Username      string `gorm:"index"`
 	ClientID      string `gorm:"index"`
 	Scope         string
 	PermissionRaw string
@@ -15,7 +15,7 @@ type UserAuthorized struct {
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 
-	User User
+	User User `gorm:"association_foreignkey:Username"`
 }
 
 // DecodePermission 解码用户授权

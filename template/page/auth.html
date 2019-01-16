@@ -1,59 +1,54 @@
-{{define "page/auth"}}
-{{template "common/header" .}}
+{{define "page/auth"}} {{template "common/header" .}}
 <style type="text/css">
-    body>.grid {
-        height: 100%;
-    }
+  body>.grid {
+    height: 100%;
+  }
 
-    .column {
-        max-width: 450px;
-    }
+  .column {
+    max-width: 450px;
+  }
 </style>
 <div class="ui middle aligned center aligned grid">
-    <div class="column">
-        <h2 class="ui image header">
-            <img src="https://images.gitee.com/uploads/enterprise_logo/5301244449.png{{.Client.Ext.Logo}}" class="image">
-            <div class="content">
-                即将登录到 聚力向前{{.Client.Ext.Name}}
-            </div>
-        </h2>
-        <form class="ui large form" method="POST">
-            <div class="ui stacked segment left aligned">
-                {{range $k,$v := .Check }}
-                <div class="inline field">
-                    <div class="ui slider checkbox">
-                        <input name="{{$k}}" type="checkbox" {{if $v}} checked{{end}} tabindex="0" class="hidden">
-                        <label>{{index $.Scopes $k}}</label>
-                    </div>
-                </div>
-                {{end}}
-                <div class="ui fluid large submit button">确认授权</div>
-            </div>
-
-            <div class="ui error message">
-                {{if or .errors.Username .errors.Password}}
-                <ul class="list">
-                    {{if .errors.Username}}<li>{{.errors.Username}}</li>{{end}}
-                    {{if .errors.Password}}<li>{{.errors.Password}}</li>{{end}}
-                </ul>
-                {{end}}
-            </div>
-
-        </form>
-
-        <div class="ui message">
-            不是您的账户？ <a id="signup">切换用户</a>
+  <div class="column">
+    <h2 class="ui image header">
+      <img src="https://images.gitee.com/uploads/enterprise_logo/5301244449.png{{.Client.Ext.Logo}}" class="image" />
+      <div class="content">即将登录到 聚力向前{{.Client.Ext.Name}}</div>
+    </h2>
+    <form class="ui large form" method="POST">
+      <div class="ui stacked segment left aligned">
+        {{range $k,$v := .Check }}
+        <div class="inline field">
+          <div class="ui slider checkbox">
+            <input name="{{ $k }}" type="checkbox" {{if $v}} checked{{end}} tabindex="0" class="hidden" />
+            <label>{{index $.Scopes $k}}</label>
+          </div>
         </div>
-    </div>
+        {{ end }}
+        <div class="ui fluid large submit button">确认授权</div>
+      </div>
+
+      <div class="ui error message">
+        {{if or .errors.Username .errors.Password}}
+        <ul class="list">
+          {{if .errors.Username}}
+          <li>{{.errors.Username}}</li>
+          {{ end }}
+          {{if .errors.Password}}
+          <li>{{.errors.Password}}</li>
+          {{ end }}
+        </ul>
+        {{ end }}
+      </div>
+    </form>
+
+    <div class="ui message">不是您的账户？ <a id="switchUser">切换用户</a></div>
+  </div>
 </div>
 <script>
-    $(document)
-        .ready(function () {
-            $('.ui.checkbox')
-                .checkbox();
-            $('.ui.form')
-                .form();
-        });
+  $(document).ready(() => {
+    $(".ui.checkbox").checkbox()
+    $(".ui.form").form()
+    $("#switchUser").attr('href', '/logout?from=' + encodeURIComponent(window.location.pathname + window.location.search))
+  })
 </script>
-{{template "common/footer" .}}
-{{end}}
+{{template "common/footer" .}} {{ end }}

@@ -1,10 +1,14 @@
 /* Override Semantic's style */
+.ui.segment {
+  border: none;
+  box-shadow: none;
+}
 .ui.container:not(.fluid) {
-  width: 980px !important;
+  max-width: 980px !important;
 }
 @media only screen and (min-width: 1200px) {
   .ui.container {
-    width: 1127px;
+    max-width: 1127px;
     margin-left: auto !important;
     margin-right: auto !important;
   }
@@ -14,8 +18,14 @@
   border-bottom: 1px solid #dddddd;
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.04);
 }
+.navbar-bottom {
+  border-top: 1px solid #e1e4e8 !important;
+  margin-top: 50px;
+  line-height: 50px;
+}
 .full-height {
   min-height: 100%;
+  margin-bottom: -110px;
 }
 .login-form {
   max-width: 450px;
