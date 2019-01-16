@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/RangelReale/osin"
-	mysql "github.com/felipeweb/osin-mysql"
+	"github.com/felipeweb/osin-mysql"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/naiba/ucenter"
@@ -129,6 +129,7 @@ func ServWeb() {
 	mustLoginRoute.Use(anonymousMustLogin)
 	{
 		mustLoginRoute.GET("/", index)
+		mustLoginRoute.GET("/logout", logout)
 	}
 
 	// Oauth2

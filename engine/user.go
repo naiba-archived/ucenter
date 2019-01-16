@@ -26,7 +26,7 @@ func login(c *gin.Context) {
 }
 
 func logout(c *gin.Context) {
-	nbgin.SetCookie(c, ucenter.AuthCookieName, "")
+	nbgin.SetCookie(c, -1, ucenter.AuthCookieName, "")
 	nbgin.SetNoCache(c)
 	c.Redirect(http.StatusTemporaryRedirect, "/login")
 }
@@ -76,7 +76,7 @@ func loginHandler(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	nbgin.SetCookie(c, ucenter.AuthCookieName, loginClient.Token)
+	nbgin.SetCookie(c, 60*60*24*365*2, ucenter.AuthCookieName, loginClient.Token)
 	nbgin.SetNoCache(c)
 	if from := c.Query("from"); strings.HasPrefix(from, "/") {
 		c.Redirect(http.StatusFound, from)

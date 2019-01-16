@@ -25,8 +25,8 @@ func Data(c *gin.Context, data map[string]interface{}) gin.H {
 }
 
 // SetCookie 设置Cookie
-func SetCookie(c *gin.Context, k, v string) {
-	c.SetCookie(k, v, 60*60*24*365*2, "/", ucenter.Domain, false, false)
+func SetCookie(c *gin.Context, second int, k, v string) {
+	c.SetCookie(k, v, second, "/", ucenter.Domain, false, false)
 }
 
 // SetNoCache 此页面不准缓存
