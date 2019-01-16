@@ -12,6 +12,7 @@ import (
 	"github.com/mssola/user_agent"
 	"github.com/naiba/ucenter"
 	"github.com/naiba/ucenter/pkg/nbgin"
+	"github.com/naiba/ucenter/pkg/ram"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -114,6 +115,10 @@ func signupHandler(c *gin.Context) {
 	if err := ucenter.DB.Save(&u).Error; err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
+	}
+	// 第一位用户授予 Root 权限
+	if u.ID == 1 {
+		ucenter.RAM.AddRoleForUser(u.StrID(), ram.RoleSuperAdmin)
 	}
 	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 	c.Redirect(http.StatusFound, "/login?"+c.Request.URL.RawQuery)

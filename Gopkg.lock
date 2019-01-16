@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:5d3e23515e7916c152cc665eda0f7eaf6fdf8fdfe7c3dbac97049bcbd649b33f"
+  name = "github.com/Knetic/govaluate"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d216395917cc49052c7c7094cf57f09657ca08a8"
+  version = "v3.0.0"
+
+[[projects]]
   branch = "master"
   digest = "1:88b822fdfd4e6cc3e04bcae689b9914dadf385fbf17ccd9204dd5fa1c4582f38"
   name = "github.com/RangelReale/osin"
@@ -27,6 +35,33 @@
   pruneopts = "UT"
   revision = "f18280fd4ffee5bbf2484560021cc3b779d1c070"
   version = "v2.0.0"
+
+[[projects]]
+  digest = "1:05128b536df719c78ce919d51824bddfeca14c71254b2450c54ca984af318a52"
+  name = "github.com/casbin/casbin"
+  packages = [
+    ".",
+    "config",
+    "effect",
+    "log",
+    "model",
+    "persist",
+    "persist/file-adapter",
+    "rbac",
+    "rbac/default-role-manager",
+    "util",
+  ]
+  pruneopts = "UT"
+  revision = "411fb496b563585bdb8909f02d4e032542b3ec77"
+  version = "v1.8.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:e31806ff98be45276d8cb3728d9a04613fb2522a4082f079fec927ce0aa9d30f"
+  name = "github.com/casbin/gorm-adapter"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "5f0f4b5ecad7f5259de033c2765c1e9399b23034"
 
 [[projects]]
   digest = "1:848ef40f818e59905140552cc49ff3dc1a15f955e4b56d1c5c2cc4b54dbadf0c"
@@ -185,6 +220,17 @@
   pruneopts = "UT"
   revision = "70078a794e8ea4b497ba7c19a78cd60f90ccf0f4"
   version = "v1.1.0"
+
+[[projects]]
+  digest = "1:8ef506fc2bb9ced9b151dafa592d4046063d744c646c1bbe801982ce87e4bc24"
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "oid",
+  ]
+  pruneopts = "UT"
+  revision = "4ded0e9383f75c197b3a2aaa6d590ac52df6fd79"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -452,6 +498,8 @@
   analyzer-version = 1
   input-imports = [
     "github.com/RangelReale/osin",
+    "github.com/casbin/casbin",
+    "github.com/casbin/gorm-adapter",
     "github.com/felipeweb/osin-mysql",
     "github.com/gin-gonic/gin",
     "github.com/gin-gonic/gin/binding",

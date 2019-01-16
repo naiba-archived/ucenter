@@ -3,6 +3,9 @@ package ucenter
 import (
 	"time"
 
+	"github.com/casbin/casbin"
+	"github.com/naiba/ucenter/pkg/ram"
+
 	"github.com/go-playground/locales/en"
 	cn "github.com/go-playground/locales/zh_Hans"
 	ut "github.com/go-playground/universal-translator"
@@ -38,6 +41,8 @@ var (
 		"/login":  nil,
 		"/signup": nil,
 	}
+	// RAM 权限系统
+	RAM *casbin.Enforcer
 	// DB 数据库实例
 	DB *gorm.DB
 	// ValidatorTrans 翻译工具
@@ -65,4 +70,7 @@ func init() {
 	if !found {
 		panic("Not found translate")
 	}
+	// 初始化 RAM
+	RAM = ram.InitRAM(DB)
+	RAM.EnableAutoSave(true)
 }
