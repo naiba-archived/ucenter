@@ -9,6 +9,7 @@
         {{.user.Username}} <i class="dropdown icon"></i>
         <div class="menu">
           <a href="/" class="item">个人中心</a>
+          {{if df_allow .user "pAdminPanel"}}<a href="/admin" class="item">管理中心</a>{{end}}
           <a href="/logout" class="item">登出</a>
         </div>
       </div>

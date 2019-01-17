@@ -3,6 +3,8 @@ package ucenter
 import (
 	"time"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/casbin/casbin"
 	"github.com/naiba/ucenter/pkg/ram"
 
@@ -35,6 +37,9 @@ const (
 	DBDSN = "root@tcp(localhost:3306)/ucenter?parseTime=True&loc=Asia%2FShanghai"
 	// Domain 系统域名
 	Domain = "localhost"
+
+	// DebugAble 允许调试
+	DebugAble = true
 )
 
 var (
@@ -62,7 +67,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	DB = DB.Debug()
 	// 创建数据表
 	DB.AutoMigrate(&User{}, &Login{}, &UserAuthorized{})
 	// 初始化错误翻译
@@ -74,5 +78,13 @@ func init() {
 	}
 	// 初始化 RAM
 	RAM = ram.InitRAM(DB)
+	ram.InitSuperAdminPermission(RAM)
 	RAM.EnableAutoSave(true)
+
+	if DebugAble {
+		DB = DB.Debug()
+		RAM.EnableLog(true)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 }

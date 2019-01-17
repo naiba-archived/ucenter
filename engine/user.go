@@ -25,7 +25,7 @@ func index(c *gin.Context) {
 	c.HTML(http.StatusOK, "page/index", nbgin.Data(c, gin.H{}))
 }
 
-func editProfile(c *gin.Context) {
+func editProfileHandler(c *gin.Context) {
 	type editForm struct {
 		Username   string `form:"username" cfn:"用户名" binding:"omitempty,min=1,max=20,alphanum"`
 		Bio        string `form:"bio" cfn:"简介" binding:"omitempty,min=1,max=255"`
@@ -238,7 +238,7 @@ func signupHandler(c *gin.Context) {
 	}
 	// 第一位用户授予 Root 权限
 	if u.ID == 1 {
-		ucenter.RAM.AddRoleForUser(u.StrID(), ram.RoleSuperAdmin)
+		ucenter.RAM.AddRoleForUserInDomain(u.StrID(), ram.RoleSuperAdmin, ram.DefaultDomain)
 	}
 	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 	c.Redirect(http.StatusFound, "/login?"+c.Request.URL.RawQuery)

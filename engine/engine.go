@@ -4,7 +4,10 @@ import (
 	"crypto/x509"
 	"database/sql"
 	"encoding/pem"
+	"html/template"
 	"log"
+
+	"github.com/naiba/ucenter/pkg/ram"
 
 	"github.com/RangelReale/osin"
 	"github.com/felipeweb/osin-mysql"
@@ -110,9 +113,17 @@ func ServWeb() {
 	initOsinResource()
 	binding.Validator = new(nbgin.DefaultValidator)
 	r := gin.Default()
-	r.LoadHTMLGlob("template/**/*")
 	r.Static("static", "static")
 	r.Static("upload", "upload")
+	r.SetFuncMap(template.FuncMap{
+		"df_allow": func(user *ucenter.User, perm string) bool {
+			return ucenter.RAM.Enforce(user.StrID(), ram.DefaultDomain, ram.DefaultProject, perm)
+		},
+		"allow": func(user *ucenter.User, domain, project, perm string) bool {
+			return ucenter.RAM.Enforce(user.StrID(), domain, project, perm)
+		},
+	})
+	r.LoadHTMLGlob("template/**/*")
 
 	// 鉴权
 	r.Use(authorizeMiddleware)
@@ -131,7 +142,7 @@ func ServWeb() {
 	{
 		mustLoginRoute.GET("/", index)
 		mustLoginRoute.GET("/logout", logout)
-		mustLoginRoute.PATCH("/profile", editProfile)
+		mustLoginRoute.PATCH("/profile", editProfileHandler)
 	}
 
 	// Oauth2
