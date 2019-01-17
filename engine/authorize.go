@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -14,7 +13,6 @@ import (
 
 func anonymousMustLogin(c *gin.Context) {
 	_, ok := c.Get(ucenter.AuthUser)
-	log.Println(ok)
 	if !ok {
 		c.Redirect(http.StatusTemporaryRedirect, "/login?return_url="+url.QueryEscape(c.Request.RequestURI))
 		c.Abort()
@@ -29,7 +27,10 @@ func authorizeMiddleware(c *gin.Context) {
 		url = strings.Replace(url, p.Value, ":"+p.Key, 1)
 	}
 	c.Set(ucenter.RequestRouter, url)
-	if _, has := ucenter.RouterSkipAuthorize[url]; has {
+	var val interface{}
+	var has bool
+	// 跳过鉴权的路由
+	if val, has = ucenter.RouterSkipAuthorize[url]; has && val == nil {
 		return
 	}
 	var authorizedUser *ucenter.User
@@ -52,7 +53,19 @@ func authorizeMiddleware(c *gin.Context) {
 			c.Set(ucenter.AuthType, ucenter.AuthTypeAccessToken)
 		}
 	}
+
 	if authorizedUser != nil {
 		c.Set(ucenter.AuthUser, authorizedUser)
+	}
+
+	//授权的路由
+	if has && val != nil {
+		var params = make([]interface{}, 0)
+		if authorizedUser == nil || !ucenter.RAM.Enforce(append(append(params, authorizedUser.StrID()), val.([]interface{})...)...) {
+			c.HTML(http.StatusForbidden, "page/info", gin.H{
+				"title": "权限不足",
+				"msg":   "访问被禁止，权限不足",
+			})
+		}
 	}
 }

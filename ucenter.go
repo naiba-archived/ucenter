@@ -47,6 +47,7 @@ var (
 	RouterSkipAuthorize = map[string]interface{}{
 		"/static": nil,
 		"/upload": nil,
+		"/admin":  []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
 	}
 	// RAM 权限系统
 	RAM *casbin.Enforcer

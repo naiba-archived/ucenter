@@ -1,0 +1,16 @@
+{{define "page/info"}}
+{{template "common/header" .}}
+<div class="ui middle aligned center aligned grid full-height">
+  <div class="column" style="max-width:700px;">
+    <div class="ui icon massive negative message">
+      <i class="inbox icon"></i>
+      <div class="content">
+        <div class="header">{{.title}} </div>
+        <p>{{.msg}}</p>
+        <button class="ui negative button" onclick="window.history.back()">返回上一页</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{template "common/footer" .}}
+{{ end }}

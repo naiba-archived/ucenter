@@ -143,16 +143,17 @@ func ServWeb() {
 		mustLoginRoute.GET("/", index)
 		mustLoginRoute.GET("/logout", logout)
 		mustLoginRoute.PATCH("/profile", editProfileHandler)
+		mustLoginRoute.GET("/admin")
 	}
 
 	// Oauth2
 	o := r.Group("oauth2")
 	{
 		// Authorization code endpoint
-		o.Any("auth", oauth2auth)
+		o.GET("auth", oauth2auth)
 		// Access token endpoint
-		o.Any("token", oauth2token)
-		o.Any("info", oauth2info)
+		o.GET("token", oauth2token)
+		o.GET("info", oauth2info)
 		o.GET("publickeys", openIDConnectPublickeys)
 	}
 

@@ -8,6 +8,7 @@ import (
 var (
 	titleMap = map[string]string{
 		"/":            "个人中心",
+		"/admin":       "管理中心",
 		"/login":       "用户登录",
 		"/signup":      "用户注册",
 		"/oauth2/auth": "用户授权",
