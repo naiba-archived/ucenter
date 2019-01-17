@@ -90,7 +90,7 @@ func oauth2auth(c *gin.Context) {
 					}
 					ua.Scope = ar.Scope
 					ua.Permission = perms
-					ua.Username = user.Username
+					ua.UserID = user.ID
 					ua.ClientID = ar.Client.GetId()
 					ua.EncodePermission()
 					// 新增授权还是更新授权
@@ -110,7 +110,7 @@ func oauth2auth(c *gin.Context) {
 							now := time.Now()
 							idToken := IDToken{
 								Issuer:     "http://localhost:8080",
-								UserID:     user.Username,
+								UserID:     user.StrID(),
 								ClientID:   ar.Client.GetId(),
 								Expiration: now.Add(time.Hour).Unix(),
 								IssuedAt:   now.Unix(),
