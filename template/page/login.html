@@ -2,7 +2,7 @@
 <div class="ui middle aligned center aligned grid full-height">
   <div class="column login-form">
     <h2 class="ui image header">
-      <img src="https://images.gitee.com/uploads/enterprise_logo/5301244449.png" class="image" />
+      <img src="/static/assets/favicon.png" class="image" />
       <div class="content">用户登录</div>
     </h2>
     <form class="ui large form{{if or .data.errors.Username .data.errors.Password}} error{{end}}" method="POST">
@@ -43,7 +43,7 @@
     $("#signup").attr("href", "/signup" + $(location).attr("search"));
     $(".ui.form").form({
       fields: {
-        email: {
+        username: {
           identifier: "username",
           rules: [
             {

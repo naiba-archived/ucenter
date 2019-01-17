@@ -156,9 +156,9 @@ func loginHandler(c *gin.Context) {
 	nbgin.SetNoCache(c)
 	if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
 		c.Redirect(http.StatusFound, returnURL)
-		return
+	} else {
+		c.Redirect(http.StatusMovedPermanently, "/")
 	}
-	c.String(http.StatusOK, "登录成功")
 }
 
 func signup(c *gin.Context) {

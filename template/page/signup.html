@@ -2,7 +2,7 @@
 <div class="ui middle aligned center aligned grid full-height">
   <div class="column login-form">
     <h2 class="ui image header">
-      <img src="https://images.gitee.com/uploads/enterprise_logo/5301244449.png" class="image" />
+      <img src="/static/assets/favicon.png" class="image" />
       <div class="content">用户注册</div>
     </h2>
     <form class="ui large form{{if or .data.errors.Username .data.errors.Password}} error{{ end }}" method="POST">
@@ -51,7 +51,7 @@
     $("#login").attr("href", "/login" + $(location).attr("search"));
     $(".ui.form").form({
       fields: {
-        email: {
+        username: {
           identifier: "username",
           rules: [
             {
@@ -82,14 +82,9 @@
             {
               type: "maxLength[32]",
               prompt: "密码最长 32 位"
-            }
-          ]
-        },
-        repassword: {
-          identifier: "repassword",
-          rules: [
+            },
             {
-              type: "match[password]",
+              type: "match[repassword]",
               prompt: "两次输入不一致"
             }
           ]

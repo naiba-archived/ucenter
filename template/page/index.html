@@ -38,6 +38,9 @@
             <label>确认密码</label>
             <input name="repassword" type="password" autocomplete="new-password" placeholder="确认密码">
           </div>
+          <div class="ui error message">
+
+          </div>
         </form>
       </div>
       <div class="actions">
@@ -55,10 +58,36 @@
   </div>
   <script>
     function showEditProfile() {
+      setFormError('#editProfileForm')
       $('#editProfile').modal('show')
     }
+    // 设置表单错误
+    function setFormError(ele, errors) {
+      var fields = $(ele + ' .field');
+      var map = {}
+      for (let i = 0; i < fields.length; i++) {
+        const element = fields[i];
+        map[element.firstElementChild.textContent] = element
+        if (!errors) {
+          $(element).removeClass('error')
+        }
+      }
+      if (errors) {
+        $(ele).addClass('error')
+        var errHtml = '<ul>';
+        Object.keys(errors).forEach(k => {
+          $(map[k.split('.')[1]]).addClass('error')
+          errHtml += '<li>' + errors[k] + '</li>'
+        });
+        errHtml += '</ul>'
+        $(ele + ' .ui.error.message').html('<div class="header">您的输入不规范</div>' + errHtml)
+      } else {
+        $(ele).removeClass('error')
+        $(ele + ' .ui.error.message').html('')
+      }
+    }
     function editProfile() {
-      $('#editProfile').addClass("loading")
+      $('#editProfileForm').addClass("loading")
       $.ajax({
         url: '/profile',
         type: 'PATCH',
@@ -69,9 +98,9 @@
       }).done((res) => {
         $('#editProfile').modal('hide')
       }).fail((res) => {
-
+        setFormError('#editProfileForm', res.responseJSON)
       }).always(() => {
-        $('#editProfile').removeClass("loading")
+        $('#editProfileForm').removeClass("loading")
       })
     }
   </script>
