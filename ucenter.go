@@ -40,9 +40,8 @@ const (
 var (
 	// RouterSkipAuthorize 不需要认证的路由
 	RouterSkipAuthorize = map[string]interface{}{
-		"/login":  nil,
-		"/signup": nil,
 		"/static": nil,
+		"/upload": nil,
 	}
 	// RAM 权限系统
 	RAM *casbin.Enforcer

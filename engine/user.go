@@ -90,6 +90,17 @@ func editProfile(c *gin.Context) {
 }
 
 func login(c *gin.Context) {
+	// 如果已登录，就跳转
+	if _, ok := c.Get(ucenter.AuthUser); ok {
+		nbgin.SetNoCache(c)
+		if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
+			c.Redirect(http.StatusFound, returnURL)
+		} else {
+			c.Redirect(http.StatusMovedPermanently, "/")
+		}
+		return
+	}
+
 	c.HTML(http.StatusOK, "page/login", nbgin.Data(c, gin.H{}))
 }
 
@@ -108,6 +119,12 @@ func logout(c *gin.Context) {
 }
 
 func loginHandler(c *gin.Context) {
+	// 如果已登录，就停止handler
+	if _, ok := c.Get(ucenter.AuthUser); ok {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+
 	type loginForm struct {
 		Username string `form:"username" cfn:"用户名" binding:"required,min=1,max=20"`
 		Password string `form:"password" cfn:"密码" binding:"required,min=6,max=32"`
@@ -162,10 +179,27 @@ func loginHandler(c *gin.Context) {
 }
 
 func signup(c *gin.Context) {
+	// 如果已登录，就跳转
+	if _, ok := c.Get(ucenter.AuthUser); ok {
+		nbgin.SetNoCache(c)
+		if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
+			c.Redirect(http.StatusFound, returnURL)
+		} else {
+			c.Redirect(http.StatusMovedPermanently, "/")
+		}
+		return
+	}
+
 	c.HTML(http.StatusOK, "page/signup", nbgin.Data(c, gin.H{}))
 }
 
 func signupHandler(c *gin.Context) {
+	// 如果已登录，就停止handler
+	if _, ok := c.Get(ucenter.AuthUser); ok {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+
 	type signUpForm struct {
 		Username   string `form:"username" cfn:"用户名" binding:"required,min=1,max=20,alphanum"`
 		Password   string `form:"password" cfn:"密码" binding:"required,min=6,max=32,eqfield=Password"`
