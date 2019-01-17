@@ -1,0 +1,18 @@
+{{define "common/user_nav"}}
+<div class="navbar">
+  <div class="ui container">
+    <div class="ui secondary menu">
+      <div class="item">
+        <img src="{{if .user.Avatar}}{{.user.Avatar}}{{else}}/static/assets/favicon.png{{end}}" /> &nbsp;&nbsp;
+      </div>
+      <div class="ui right dropdown item">
+        {{.user.Username}} <i class="dropdown icon"></i>
+        <div class="menu">
+          <a href="/" class="item">个人中心</a>
+          <a href="/logout" class="item">登出</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

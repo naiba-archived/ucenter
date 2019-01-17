@@ -1,7 +1,4 @@
 /* Override Semantic's style */
-.ui.container:not(.fluid) {
-  max-width: 980px !important;
-}
 @media only screen and (min-width: 1200px) {
   .ui.container {
     max-width: 1127px;
@@ -24,8 +21,11 @@
   line-height: 50px;
 }
 .full-height {
-  min-height: 100%;
-  margin-bottom: -110px;
+  height: 100% !important;
+  max-width: 100% !important;
+  margin-bottom: -110px !important;
+  margin-right: 0em !important;
+  margin-left: 0em !important;
 }
 .login-form {
   max-width: 450px;

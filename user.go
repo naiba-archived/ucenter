@@ -14,7 +14,7 @@ type User struct {
 	Avatar   string `json:"avatar,omitempty"`
 	Bio      string `json:"bio,omitempty"`
 
-	UserAuthorizeds []UserAuthorized `json:"user_authorizeds,omitempty" gorm:"foreignkey:Username""`
+	UserAuthorizeds []UserAuthorized `json:"user_authorizeds,omitempty" gorm:"foreignkey:Username"`
 	Logins          []Login          `json:"logins,omitempty"`
 }
 
