@@ -1,7 +1,9 @@
 package engine
 
 import (
+	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -17,8 +19,74 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+var isImage = regexp.MustCompile(`^.*\.((png)|(jpeg)|(jpg)|(gif))$`)
+
 func index(c *gin.Context) {
 	c.HTML(http.StatusOK, "page/index", nbgin.Data(c, gin.H{}))
+}
+
+func editProfile(c *gin.Context) {
+	type editForm struct {
+		Username   string `form:"username" cfn:"用户名" binding:"omitempty,min=1,max=20,alphanum"`
+		Bio        string `form:"bio" cfn:"简介" binding:"omitempty,min=1,max=255"`
+		Password   string `form:"password" cfn:"密码" binding:"omitempty,min=6,max=32,eqfield=RePassword"`
+		RePassword string `form:"repassword" cfn:"确认密码" binding:"omitempty,min=6,max=32"`
+	}
+
+	var ef editForm
+	var errors = make(map[string]string)
+	var num int
+	u := c.MustGet(ucenter.AuthUser).(*ucenter.User)
+
+	// 验证用户输入
+	if err := c.ShouldBind(&ef); err != nil {
+		errors = err.(validator.ValidationErrors).Translate(ucenter.ValidatorTrans)
+	} else if ef.Username != u.Username {
+		if ucenter.DB.Model(ucenter.User{}).Where("username = ?", ef.Username).Count(&num); num != 0 {
+			errors["editProfileForm.用户名"] = "用户名已被使用"
+		}
+	}
+
+	avatar, err := c.FormFile("avatar")
+	if err == nil {
+		if !isImage.MatchString(avatar.Filename) {
+			errors["editProfileForm.头像"] = "头像不是图片文件"
+		} else if avatar.Size > 1024*1024*2 {
+			errors["editProfileForm.头像"] = "头像不能大于 2 M"
+		}
+	}
+
+	if len(errors) > 0 {
+		c.JSON(http.StatusForbidden, errors)
+		return
+	}
+
+	if len(ef.Username) > 0 {
+		u.Username = ef.Username
+	}
+	if len(ef.Bio) > 0 {
+		u.Bio = ef.Bio
+	}
+	if len(ef.RePassword) > 0 {
+		bPass, err := bcrypt.GenerateFromPassword([]byte(ef.Password), bcrypt.DefaultCost)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		u.Password = string(bPass)
+	}
+	if avatar != nil {
+		err = c.SaveUploadedFile(avatar, fmt.Sprintf("upload/avatar/%d", u.ID))
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		u.Avatar = true
+	}
+	if err := ucenter.DB.Save(&u).Error; err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 }
 
 func login(c *gin.Context) {
@@ -32,8 +100,8 @@ func logout(c *gin.Context) {
 	}
 	nbgin.SetCookie(c, -1, ucenter.AuthCookieName, "")
 	nbgin.SetNoCache(c)
-	if return_url := c.Query("return_url"); strings.HasPrefix(return_url, "/") {
-		c.Redirect(http.StatusFound, return_url)
+	if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
+		c.Redirect(http.StatusFound, returnURL)
 	} else {
 		c.Redirect(http.StatusTemporaryRedirect, "/login")
 	}
@@ -41,7 +109,7 @@ func logout(c *gin.Context) {
 
 func loginHandler(c *gin.Context) {
 	type loginForm struct {
-		Username string `form:"username" cfn:"用户名" binding:"required,min=2,max=12"`
+		Username string `form:"username" cfn:"用户名" binding:"required,min=1,max=20"`
 		Password string `form:"password" cfn:"密码" binding:"required,min=6,max=32"`
 	}
 	var lf loginForm
@@ -86,8 +154,8 @@ func loginHandler(c *gin.Context) {
 	}
 	nbgin.SetCookie(c, 60*60*24*365*2, ucenter.AuthCookieName, loginClient.Token)
 	nbgin.SetNoCache(c)
-	if return_url := c.Query("return_url"); strings.HasPrefix(return_url, "/") {
-		c.Redirect(http.StatusFound, return_url)
+	if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
+		c.Redirect(http.StatusFound, returnURL)
 		return
 	}
 	c.String(http.StatusOK, "登录成功")
@@ -99,9 +167,9 @@ func signup(c *gin.Context) {
 
 func signupHandler(c *gin.Context) {
 	type signUpForm struct {
-		Username   string `form:"username" cfn:"用户名" binding:"required,min=2,max=12"`
-		Password   string `form:"password" cfn:"密码" binding:"required,min=6,max=32"`
-		RePassword string `form:"repassword" cfn:"确认密码" binding:"required,min=6,max=32,eqfield=Password"`
+		Username   string `form:"username" cfn:"用户名" binding:"required,min=1,max=20,alphanum"`
+		Password   string `form:"password" cfn:"密码" binding:"required,min=6,max=32,eqfield=Password"`
+		RePassword string `form:"repassword" cfn:"确认密码" binding:"required,min=6,max=32"`
 	}
 	var suf signUpForm
 	var u ucenter.User
@@ -130,7 +198,7 @@ func signupHandler(c *gin.Context) {
 		return
 	}
 	u.Password = string(bPass)
-	if err := ucenter.DB.Save(&u).Error; err != nil {
+	if err := ucenter.DB.Create(&u).Error; err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}

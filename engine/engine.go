@@ -112,6 +112,7 @@ func ServWeb() {
 	r := gin.Default()
 	r.LoadHTMLGlob("template/**/*")
 	r.Static("static", "static")
+	r.Static("upload", "upload")
 
 	// 鉴权
 	r.Use(authorizeMiddleware)
@@ -130,6 +131,7 @@ func ServWeb() {
 	{
 		mustLoginRoute.GET("/", index)
 		mustLoginRoute.GET("/logout", logout)
+		mustLoginRoute.PATCH("/profile", editProfile)
 	}
 
 	// Oauth2

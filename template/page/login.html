@@ -10,13 +10,13 @@
         <div class="field{{if .data.errors.Username}} error{{ end }}">
           <div class="ui left icon input">
             <i class="user icon"></i>
-            <input type="text" name="username" placeholder="用户名" />
+            <input type="text" name="username" autocomplete="username" placeholder="用户名" />
           </div>
         </div>
         <div class="field{{if .data.errors.Password}} error{{ end }}">
           <div class="ui left icon input">
             <i class="lock icon"></i>
-            <input type="password" name="password" placeholder="密码" />
+            <input type="password" name="password" autocomplete="current-password" placeholder="密码" />
           </div>
         </div>
         <div class="ui fluid large submit button">登录</div>
@@ -51,12 +51,12 @@
               prompt: "用户名不能为空"
             },
             {
-              type: "minLength[2]",
-              prompt: "用户名长度最短 2 位"
+              type: "minLength[1]",
+              prompt: "用户名长度最短 1 位"
             },
             {
-              type: "maxLength[12]",
-              prompt: "用户名长度最长 12 位"
+              type: "maxLength[20]",
+              prompt: "用户名长度最长 20 位"
             }
           ]
         },

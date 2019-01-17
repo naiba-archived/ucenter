@@ -9,9 +9,9 @@ import (
 // User 用户表
 type User struct {
 	gorm.Model
-	Username string `gorm:"type:varchar(36);unique_index" json:"username,omitempty"`
+	Username string `gorm:"type:varchar(20);unique_index;notnull" json:"username,omitempty"`
 	Password string `json:"-"`
-	Avatar   string `json:"avatar,omitempty"`
+	Avatar   bool   `json:"avatar,omitempty"`
 	Bio      string `json:"bio,omitempty"`
 
 	UserAuthorizeds []UserAuthorized `json:"user_authorizeds,omitempty"`

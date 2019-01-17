@@ -1,0 +1,32 @@
+{{define "common/msgbox"}}
+<div id="cm_msgbox" class="ui basic modal">
+    <div class="ui icon header">
+        <i class="exclamation triangle icon"></i>
+        <span id="cm_msgbox_title"></span>
+    </div>
+    <div class="content">
+        <div id="cm_msgbox_content"></div>
+    </div>
+    <div class="actions">
+        <div class="ui red basic cancel inverted button">
+            <i class="remove icon"></i>
+            No
+        </div>
+        <div id="cm_ok_btn" class="ui green inverted button">
+            <i class="checkmark icon"></i>
+            OK
+        </div>
+    </div>
+</div>
+<script>
+    function showMsgbox(title, content, ok) {
+        var modal = $('#cm_msgbox')
+        $('#cm_msgbox_title').html(title)
+        $('#cm_msgbox_content').html(content)
+        $('#cm_ok_btn').on('click', () => {
+            ok(modal)
+        })
+        modal.modal('show')
+    }
+</script>
+{{ end }}

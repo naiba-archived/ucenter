@@ -1,4 +1,6 @@
 vendor
+/upload/avatar/*
+!.gitkeep
 .DS_Store
 # ---> Go
 # Binaries for programs and plugins

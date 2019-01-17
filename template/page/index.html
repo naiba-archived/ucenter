@@ -1,19 +1,78 @@
 {{define "page/index"}} {{template "common/header" .}}
-  {{template "common/user_nav" .}}
-  <div class="ui container segment clear-shadow-and-border">
-    <div class="ui card">
-      <div class="image"><img src="/static/assets/favicon.png" /></div>
+{{template "common/user_nav" .}}
+<div class="ui container segment clear-shadow-and-border">
+  <div class="ui card">
+    <div class="image"><img src="{{if .user.Avatar}}/upload/avatar/{{.user.ID}}{{else}}/static/assets/favicon.png{{end}}" /></div>
+    <div class="content">
+      <a class="header">{{.user.Username}}</a>
+      <div class="meta"><span class="date">{{.user.CreatedAt}} 加入</span></div>
+      <div class="description">
+        {{if .user.Bio}}{{.user.Bio}}{{else}}该用户很神秘，并没有留下简介。{{end}}
+      </div>
+    </div>
+    <div class="ui bottom attached button" onclick="showEditProfile()"><i class="edit icon"></i> 修改资料 </div>
+    <div id="editProfile" class="ui modal">
+      <div class="header">
+        <i class="edit icon"></i>
+        修改资料
+      </div>
       <div class="content">
-        <a class="header">{{.user.Username}}</a>
-        <div class="meta"><span class="date">{{.user.CreatedAt}} 加入</span></div>
-        <div class="description">
-          {{.user.Bio}}
+        <form id="editProfileForm" class="ui form">
+          <div class="inline field">
+            <label>头像</label>
+            <input name="avatar" type="file">
+          </div>
+          <div class="inline field">
+            <label>用户名</label>
+            <input name="username" type="text" value="{{.user.Username}}" placeholder="英文或数字">
+          </div>
+          <div class="inline field">
+            <label>简介</label>
+            <input name="bio" type="text" autocomplete="nickname" value="{{.user.Bio}}">
+          </div>
+          <div class="inline field">
+            <label>新密码</label>
+            <input name="password" type="password" autocomplete="new-password" placeholder="至少 6 位">
+          </div>
+          <div class="inline field">
+            <label>确认密码</label>
+            <input name="repassword" type="password" autocomplete="new-password" placeholder="确认密码">
+          </div>
+        </form>
+      </div>
+      <div class="actions">
+        <div class="ui cancel button">
+          <i class="remove icon"></i>
+          取消
+        </div>
+        <div onclick="editProfile()" class="ui green button">
+          <i class="checkmark icon"></i>
+          保存
         </div>
       </div>
-      <div class="ui bottom attached button"><i class="edit icon"></i> 修改资料 </div>
+      </di>
     </div>
   </div>
-<script>
-  $(".ui.dropdown").dropdown();
-</script>
-{{template "common/footer" .}} {{ end }}
+  <script>
+    function showEditProfile() {
+      $('#editProfile').modal('show')
+    }
+    function editProfile() {
+      $('#editProfile').addClass("loading")
+      $.ajax({
+        url: '/profile',
+        type: 'PATCH',
+        cache: false,
+        data: new FormData($('#editProfileForm')[0]),
+        processData: false,
+        contentType: false
+      }).done((res) => {
+        $('#editProfile').modal('hide')
+      }).fail((res) => {
+
+      }).always(() => {
+        $('#editProfile').removeClass("loading")
+      })
+    }
+  </script>
+  {{template "common/footer" .}} {{ end }}
