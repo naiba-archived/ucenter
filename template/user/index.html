@@ -64,7 +64,7 @@
     </div>
     <div class="eleven wide column">
       <div class="ui segment clear-shadow-and-border">
-        <h1><i class="android icon"></i>OAuth 应用管理</h1>
+        <h1><i class="android icon"></i>我的 OAuth 应用</h1>
         <div class="ui stackable four column grid">
           {{range $i,$v := .data.apps}}
           <div class="column">
@@ -99,8 +99,12 @@
                     <input name="desc" type="text" value="">
                   </div>
                   <div class="inline field">
+                    <label>首页链接</label>
+                    <input name="url" type="url" value="">
+                  </div>
+                  <div class="inline field">
                     <label>跳转链接</label>
-                    <input name="redirect_uri" type="text">
+                    <input name="redirect_uri" type="url">
                   </div>
                   <div class="inline field">
                     <label>密钥</label>
@@ -153,6 +157,9 @@
         case 'desc':
           inputs['Desc'] = e
           break;
+        case 'url':
+          inputs['URL'] = e
+          break;
         case 'secret':
           inputs['Secret'] = e
           break;
@@ -165,6 +172,7 @@
       Object.keys(apps[index]).forEach((k) => {
         if (k == 'Ext') {
           inputs.Name.val(apps[index][k].name)
+          inputs.URL.val(apps[index][k].url)
           inputs.Desc.val(apps[index][k].desc)
         } else {
           inputs[k].val(apps[index][k])

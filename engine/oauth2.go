@@ -198,9 +198,10 @@ func oauth2token(c *gin.Context) {
 func editOauth2App(c *gin.Context) {
 	type Oauth2AppForm struct {
 		ID          string `form:"id" cfn:"ID" binding:"omitempty,min=3,max=255"`
-		Name        string `form:"name" cfn:"应用名" binding:"required,min=1,max=255"`
-		Desc        string `form:"desc" cfn:"简介" binding:"required,min=1,max=255"`
-		RedirectURI string `form:"redirect_uri" cfn:"跳转链接" binding:"required,min=1,max=255"`
+		Name        string `form:"name" cfn:"应用名" binding:"required,min=1,max=20"`
+		Desc        string `form:"desc" cfn:"简介" binding:"required,min=1,max=100"`
+		URL         string `form:"url" cfn:"首页链接" binding:"required,url,min=11,max=100"`
+		RedirectURI string `form:"redirect_uri" cfn:"跳转链接" binding:"required,url,min=1,max=255"`
 	}
 
 	var ef Oauth2AppForm
@@ -280,6 +281,7 @@ func editOauth2App(c *gin.Context) {
 		var oc osin.Client
 		client.Ext.Name = ef.Name
 		client.Ext.Desc = ef.Desc
+		client.Ext.URL = ef.URL
 		client.RedirectURI = ef.RedirectURI
 		oc, err = client.ToOsinClient()
 		if isNewClient {
