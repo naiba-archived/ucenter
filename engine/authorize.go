@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/naiba/ucenter/pkg/nbgin"
+
 	"github.com/RangelReale/osin"
 
 	"github.com/gin-gonic/gin"
@@ -71,6 +73,7 @@ func authorizeMiddleware(c *gin.Context) {
 
 	if authorizedUser != nil {
 		if authorizedUser.Status == ucenter.StatusSuspended {
+			nbgin.SetCookie(c, -1, ucenter.AuthCookieName, "")
 			c.HTML(http.StatusForbidden, "page/info", gin.H{
 				"icon":  "shield alternate",
 				"title": "禁止通行",
