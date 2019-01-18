@@ -159,8 +159,9 @@ func ServWeb() {
 		mustLoginRoute.GET("/", index)
 		mustLoginRoute.GET("/logout", logout)
 		mustLoginRoute.PATCH("/", editProfileHandler)
-		mustLoginRoute.DELETE("/:id", userDelete)
+		mustLoginRoute.DELETE("/user/:id", userDelete)
 		mustLoginRoute.POST("/app", editOauth2App)
+		mustLoginRoute.DELETE("/app/:id", deleteOauth2App)
 	}
 
 	// 管理员路由

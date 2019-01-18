@@ -47,7 +47,7 @@
 <script>
   function deleteUser(id) {
     $.ajax({
-      url: '/' + id,
+      url: '/user/' + id,
       type: 'DELETE',
       cache: false,
     }).done((res) => {

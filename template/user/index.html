@@ -108,7 +108,7 @@
                   </div>
                   <div class="ui error message"></div>
                   <div class="ui message">
-                    <p>头像更新有缓存，请不要着急。</p>
+                    <p>图标更新有缓存，请不要着急。</p>
                   </div>
                 </form>
               </div>
@@ -179,7 +179,13 @@
     showModal('#editOauthApp')
   }
   function deleteApp(index) {
-    
+    $.ajax({
+      url: "/app/" + apps[index].ID,
+      type: 'DELETE',
+      cache: false,
+    }).done((res) => {
+      window.location.reload()
+    })
   }
   function showModal(modal) {
     setFormError(modal + 'Form')
