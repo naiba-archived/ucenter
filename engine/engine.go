@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/naiba/ucenter/pkg/ram"
 
@@ -129,6 +130,13 @@ func ServWeb() {
 	})
 	r.LoadHTMLGlob("template/**/*")
 
+	// 头像 Header
+	r.Use(func(c *gin.Context) {
+		if strings.HasPrefix(c.Request.RequestURI, "/upload/avatar/") {
+			c.Header("Content-Type", "image")
+		}
+	})
+
 	// 鉴权
 	r.Use(authorizeMiddleware)
 
@@ -146,7 +154,7 @@ func ServWeb() {
 	{
 		mustLoginRoute.GET("/", index)
 		mustLoginRoute.GET("/logout", logout)
-		mustLoginRoute.PATCH("/profile", editProfileHandler)
+		mustLoginRoute.PATCH("/", editProfileHandler)
 		mustLoginRoute.DELETE("/:id", userDelete)
 	}
 

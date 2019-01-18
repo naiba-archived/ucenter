@@ -3,7 +3,10 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -73,7 +76,21 @@ func editProfileHandler(c *gin.Context) {
 	}
 
 	avatar, err := c.FormFile("avatar")
+	var f multipart.File
 	if err == nil {
+		f, err = avatar.Open()
+		if err != nil {
+			errors["editProfileForm.头像"] = err.Error()
+		} else {
+			defer f.Close()
+			buff := make([]byte, 512) // why 512 bytes ? see http://golang.org/pkg/net/http/#DetectContentType
+			_, err = f.Read(buff)
+			if err != nil {
+				errors["editProfileForm.头像"] = err.Error()
+			} else if !strings.HasPrefix(http.DetectContentType(buff), "image/") {
+				errors["editProfileForm.头像"] = "头像不是图片文件"
+			}
+		}
 		if !isImage.MatchString(avatar.Filename) {
 			errors["editProfileForm.头像"] = "头像不是图片文件"
 		} else if avatar.Size > 1024*1024*2 {
@@ -100,12 +117,15 @@ func editProfileHandler(c *gin.Context) {
 		}
 		u.Password = string(bPass)
 	}
-	if avatar != nil {
-		err = c.SaveUploadedFile(avatar, fmt.Sprintf("upload/avatar/%d", u.ID))
+	if f != nil {
+		f.Seek(0, 0)
+		out, err := os.Create(fmt.Sprintf("upload/avatar/%d", u.ID))
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
+		defer out.Close()
+		io.Copy(out, f)
 		u.Avatar = true
 	}
 	if err := ucenter.DB.Save(&u).Error; err != nil {

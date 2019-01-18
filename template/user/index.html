@@ -94,7 +94,7 @@
   function editProfile() {
     $('#editProfileForm').addClass("loading")
     $.ajax({
-      url: '/profile',
+      url: '/',
       type: 'PATCH',
       cache: false,
       data: new FormData($('#editProfileForm')[0]),
