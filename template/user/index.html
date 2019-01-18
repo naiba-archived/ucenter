@@ -72,9 +72,10 @@
               <img src="/upload/avatar/{{$v.ID}}" class="visible content" style="height:150px;width:150px;text-align: center">
               <div class="hidden content" style="height:150px;width:150px;padding-top: 55px;text-align: center">
                 <a {{if eq $v.Ext.Status -1}} {{else}} class="ui green basic button" {{end}} {{if eq $v.Ext.Status -1}}
-                  {{else}} href="{{$v.Ext.URL}}" target="_black" {{end}}>{{$v.Ext.Name}}{{if eq $v.Ext.Status -1}} <div class="ui image label">
-                      <img src="/static/assets/favicon.png">已被禁用
-                    </div>{{end}}</a>
+                  {{else}} href="{{$v.Ext.URL}}" target="_black" {{end}}>{{$v.Ext.Name}}{{if eq $v.Ext.Status -1}} <div
+                    class="ui image label">
+                    <img src="/static/assets/favicon.png">已被禁用
+                  </div>{{end}}</a>
                 <p>{{$v.Ext.Desc}}</p>
               </div>
             </div>
@@ -104,7 +105,6 @@
               </div>
               <div class="content">
                 <form id="editOauthAppForm" class="ui form">
-                  <input name="id" type="hidden">
                   <div class="inline field">
                     <label>圆图标</label>
                     <input name="avatar" type="file">
@@ -124,6 +124,10 @@
                   <div class="inline field">
                     <label>跳转链接</label>
                     <input name="redirect_uri" type="url">
+                  </div>
+                  <div class="inline field">
+                    <label>ID</label>
+                    <input name="id" readonly type="text" value="创建后显示">
                   </div>
                   <div class="inline field">
                     <label>密钥</label>
@@ -200,7 +204,7 @@
     } else {
       Object.keys(inputs).forEach((k) => {
         const e = inputs[k]
-        e.val(e.attr('name') == 'secret' ? '创建后显示' : "")
+        e.val((e.attr('name') == 'secret' || e.attr('name') == 'id') ? '创建后显示' : "")
       })
     }
     showModal('#editOauthApp')

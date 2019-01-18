@@ -22,18 +22,12 @@ type IDToken struct {
 
 	// Custom claims supported by this server.
 	// See: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
-
-	Email         string `json:"email,omitempty"`
-	EmailVerified *bool  `json:"email_verified,omitempty"`
-
-	Name       string `json:"name,omitempty"`
-	FamilyName string `json:"family_name,omitempty"`
-	GivenName  string `json:"given_name,omitempty"`
-	Locale     string `json:"locale,omitempty"`
+	Avatar string `json:"avatar,omitempty"`
+	Name   string `json:"name,omitempty"`
 }
 
 // encodeIDToken serializes and signs an ID Token then adds a field to the token response.
-func encodeIDToken(resp *osin.Response, idToken *IDToken, singer jose.Signer) {
+func encodeIDToken(resp *osin.Response, idToken IDToken, singer jose.Signer) {
 	resp.InternalError = func() error {
 		payload, err := json.Marshal(idToken)
 		if err != nil {

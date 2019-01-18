@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -81,19 +82,17 @@ func oauth2auth(c *gin.Context) {
 		user, ok := c.Get(ucenter.AuthUser)
 		if ok {
 			user := user.(*ucenter.User)
-			scopes := strings.Split(ar.Scope, ",")
+			scopes := strings.Split(ar.Scope, " ")
 			ucenter.DB.Model(user).Where("client_id = ?", ar.Client.GetId()).Association("UserAuthorizeds").Find(&user.UserAuthorizeds)
+			if len(user.UserAuthorizeds) > 0 {
+				user.UserAuthorizeds[0].DecodePermission()
+			}
 			if c.Request.Method == http.MethodGet {
 				if len(user.UserAuthorizeds) == 1 && ar.Scope == user.UserAuthorizeds[0].Scope {
 					// 用户已经授予权限
-					ar.UserData = user
 					ar.Authorized = true
-					osinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 				} else {
 					// 需要用户授予权限
-					if len(user.UserAuthorizeds) == 1 {
-						user.UserAuthorizeds[0].DecodePermission()
-					}
 					oc, _ := ucenter.ToOauth2Client(ar.Client)
 					var checkPerms = make(map[string]bool)
 					for _, scope := range scopes {
@@ -131,60 +130,59 @@ func oauth2auth(c *gin.Context) {
 					perms[scope] = c.PostForm(scope) == "on"
 				}
 				if !resp.IsError {
-					var ua ucenter.UserAuthorized
-					if len(user.UserAuthorizeds) == 1 {
-						ua = user.UserAuthorizeds[0]
-					}
-					ua.Scope = ar.Scope
-					ua.Permission = perms
-					ua.UserID = user.ID
-					ua.ClientID = ar.Client.GetId()
-					ua.EncodePermission()
-					// 新增授权还是更新授权
-					var err error
 					if len(user.UserAuthorizeds) == 0 {
-						err = ucenter.DB.Save(&ua).Error
-					} else {
-						err = ucenter.DB.Model(&ua).Save(ua).Error
+						user.UserAuthorizeds = make([]ucenter.UserAuthorized, 0)
+						user.UserAuthorizeds = append(user.UserAuthorizeds, ucenter.UserAuthorized{})
 					}
-					if err != nil {
+					user.UserAuthorizeds[0].Scope = ar.Scope
+					user.UserAuthorizeds[0].Permission = perms
+					user.UserAuthorizeds[0].UserID = user.ID
+					user.UserAuthorizeds[0].ClientID = ar.Client.GetId()
+					user.UserAuthorizeds[0].EncodePermission()
+					// 新增授权还是更新授权
+					if err := ucenter.DB.Save(&user.UserAuthorizeds[0]).Error; err != nil {
 						resp.SetError(osin.E_SERVER_ERROR, err.Error())
 					} else {
 						// 认证通过标识
 						ar.Authorized = true
-						// 如果是 OpenIDConnect，特殊照顾
-						if perms["openid"] {
-							now := time.Now()
-							idToken := IDToken{
-								Issuer:     "http://localhost:8080",
-								UserID:     user.StrID(),
-								ClientID:   ar.Client.GetId(),
-								Expiration: now.Add(time.Hour).Unix(),
-								IssuedAt:   now.Unix(),
-								Nonce:      c.Request.URL.Query().Get("nonce"),
-							}
-
-							if perms["profile"] {
-								idToken.Name = user.Username
-								idToken.GivenName = user.Username
-								idToken.FamilyName = ""
-								idToken.Locale = "zh-CN"
-							}
-
-							if perms["email"] {
-								t := true
-								idToken.Email = ""
-								idToken.EmailVerified = &t
-							}
-							ar.UserData = &idToken
-						} else {
-							ar.UserData = user
-						}
-						osinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 					}
 				}
 			} else {
 				resp.SetError(osin.E_INVALID_REQUEST, "不支持的请求方式哦。")
+			}
+			if ar.Authorized && !resp.IsError {
+				scop := make([]byte, 0)
+				for k, v := range user.UserAuthorizeds[0].Permission {
+					if v {
+						scop = append(scop, []byte(k+" ")...)
+					}
+				}
+				if len(scop) > 2 {
+					ar.Scope = string(scop[:len(scop)-1])
+				} else {
+					ar.Scope = ""
+				}
+				// 如果是 OpenIDConnect，特殊照顾
+				if user.UserAuthorizeds[0].Permission["openid"] {
+					now := time.Now()
+					idToken := IDToken{
+						Issuer:     "http://localhost:8080",
+						UserID:     user.StrID(),
+						ClientID:   ar.Client.GetId(),
+						Expiration: now.Add(time.Hour).Unix(),
+						IssuedAt:   now.Unix(),
+						Nonce:      c.Request.URL.Query().Get("nonce"),
+					}
+
+					if user.UserAuthorizeds[0].Permission["profile"] {
+						idToken.Name = user.Username
+						idToken.Avatar = "http://localhot:8080/upload/avatar/" + user.StrID()
+					}
+
+					tmp, _ := json.Marshal(idToken)
+					ar.UserData = string(tmp)
+				}
+				osinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 			}
 		} else {
 			// 用户未登录，跳转登录界面
@@ -223,15 +221,13 @@ func oauth2token(c *gin.Context) {
 		osinServer.FinishAccessRequest(resp, c.Request, ar)
 
 		// If an ID Token was encoded as the UserData, serialize and sign it.
-		if idToken, ok := ar.UserData.(*IDToken); ok && idToken != nil {
-			encodeIDToken(resp, idToken, jwtSigner)
+		var id IDToken
+		if err := json.Unmarshal([]byte(ar.UserData.(string)), &id); err == nil {
+			encodeIDToken(resp, id, jwtSigner)
 		}
 	}
 	if resp.IsError && resp.InternalError != nil {
 		fmt.Printf("ERROR: %s\n", resp.InternalError)
-	}
-	if !resp.IsError {
-		resp.Output["custom_parameter"] = 19923
 	}
 	osin.OutputJSON(resp, c.Writer, c.Request)
 }

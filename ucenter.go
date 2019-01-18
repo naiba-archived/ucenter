@@ -77,8 +77,7 @@ var (
 	ValidatorTrans ut.Translator
 	// Scopes 可以使用的 scope 列表
 	Scopes = map[string]string{
-		"baseinfo": "获取用户基本信息",
-		"test":     "测试Scope",
+		"openid": "获取用户基本信息",
 	}
 )
 
@@ -90,6 +89,14 @@ func init() {
 	}
 	// 创建数据表
 	DB.AutoMigrate(&User{}, &Login{}, &UserAuthorized{})
+	if DebugAble {
+		DB = DB.Debug()
+		RAM.EnableLog(true)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+	DB.Raw("ALTER TABLE osin_access MODIFY COLUMN extra VARCHAR(1000);")
+	DB.Raw("ALTER TABLE osin_authorize MODIFY COLUMN extra VARCHAR(1000);")
 	// 初始化错误翻译
 	uni := ut.New(en.New(), cn.New())
 	var found bool
@@ -101,11 +108,4 @@ func init() {
 	RAM = ram.InitRAM(DB)
 	ram.InitSuperAdminPermission(RAM)
 	RAM.EnableAutoSave(true)
-
-	if DebugAble {
-		DB = DB.Debug()
-		RAM.EnableLog(true)
-	} else {
-		gin.SetMode(gin.ReleaseMode)
-	}
 }

@@ -16,31 +16,17 @@
     </h2>
     <form class="ui large form" method="POST">
       <div class="ui stacked segment left aligned">
-        {{range $k,$v := .Check }}
+        {{range $k,$v := .data.Check }}
         <div class="inline field">
           <div class="ui slider checkbox">
             <input name="{{ $k }}" type="checkbox" {{if $v}} checked{{end}} tabindex="0" class="hidden" />
-            <label>{{index $.Scopes $k}}</label>
+            <label>{{index $.data.Scopes $k}}</label>
           </div>
         </div>
         {{ end }}
         <div class="ui fluid large submit button">确认授权</div>
       </div>
-
-      <div class="ui error message">
-        {{if or .errors.Username .errors.Password}}
-        <ul class="list">
-          {{if .errors.Username}}
-          <li>{{.errors.Username}}</li>
-          {{ end }}
-          {{if .errors.Password}}
-          <li>{{.errors.Password}}</li>
-          {{ end }}
-        </ul>
-        {{ end }}
-      </div>
     </form>
-
     <div class="ui message">不是您的账户？ <a id="switchUser">切换用户</a></div>
   </div>
 </div>

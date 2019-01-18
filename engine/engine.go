@@ -39,7 +39,6 @@ func initOsinResource() {
 	if err != nil {
 		panic(err)
 	}
-
 	osinStore = mysql.New(db, "osin_")
 	err = osinStore.CreateSchemas()
 	if err != nil {
@@ -179,8 +178,10 @@ func ServWeb() {
 	{
 		// Authorization code endpoint
 		o.GET("auth", oauth2auth)
+		o.POST("auth", oauth2auth)
 		// Access token endpoint
 		o.GET("token", oauth2token)
+		o.POST("token", oauth2token)
 		o.GET("info", oauth2info)
 		o.GET("publickeys", openIDConnectPublickeys)
 
