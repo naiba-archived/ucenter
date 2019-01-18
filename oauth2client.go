@@ -12,8 +12,6 @@ type Oauth2Client struct {
 	RedirectURI string
 	Secret      string
 	Ext         struct {
-		User uint   `json:"user,omitempty"`
-		Logo string `json:"logo,omitempty"`
 		Name string `json:"name,omitempty"`
 		Desc string `json:"desc,omitempty"`
 	}

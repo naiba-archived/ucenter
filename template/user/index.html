@@ -2,69 +2,141 @@
 {{template "common/header" .}}
 {{template "common/user_nav" .}}
 <div class="ui container segment clear-shadow-and-border">
-  <div class="ui card">
-    <div class="image"><img src="{{if .user.Avatar}}/upload/avatar/{{.user.ID}}{{else}}/static/assets/favicon.png{{end}}" /></div>
-    <div class="content">
-      <a class="header">{{.user.Username}}</a>
-      <div class="meta"><span class="date">{{.user.CreatedAt}} 加入</span></div>
-      <div class="description">
-        {{if .user.Bio}}{{.user.Bio}}{{else}}该用户很神秘，并没有留下简介。{{end}}
+  <div class="ui stackable grid">
+    <div class="five wide column">
+      <div class="ui card">
+        <div class="image"><img src="{{if .user.Avatar}}/upload/avatar/{{.user.ID}}{{else}}/static/assets/favicon.png{{end}}" /></div>
+        <div class="content">
+          <a class="header">{{.user.Username}}</a>
+          <div class="meta"><span class="date">{{.user.CreatedAt}} 加入</span></div>
+          <div class="description">
+            {{if .user.Bio}}{{.user.Bio}}{{else}}该用户很神秘，并没有留下简介。{{end}}
+          </div>
+        </div>
+        <div class="ui bottom attached button" onclick="showModal('#editProfile')"><i class="edit icon"></i> 修改资料
+        </div>
+        <div id="editProfile" class="ui modal">
+          <div class="header">
+            <i class="edit icon"></i>
+            修改资料
+          </div>
+          <div class="content">
+            <form id="editProfileForm" class="ui form">
+              <div class="inline field">
+                <label>头像</label>
+                <input name="avatar" type="file">
+              </div>
+              <div class="inline field">
+                <label>用户名</label>
+                <input name="username" type="text" value="{{.user.Username}}" placeholder="英文或数字">
+              </div>
+              <div class="inline field">
+                <label>简介</label>
+                <input name="bio" type="text" autocomplete="nickname" value="{{.user.Bio}}">
+              </div>
+              <div class="inline field">
+                <label>新密码</label>
+                <input name="password" type="password" autocomplete="new-password" placeholder="至少 6 位">
+              </div>
+              <div class="inline field">
+                <label>确认密码</label>
+                <input name="repassword" type="password" autocomplete="new-password" placeholder="确认密码">
+              </div>
+              <div class="ui error message"></div>
+              <div class="ui message">
+                <p>头像更新有缓存，请不要着急。</p>
+              </div>
+            </form>
+          </div>
+          <div class="actions">
+            <div class="ui cancel button">
+              <i class="remove icon"></i>
+              取消
+            </div>
+            <div onclick="editProfile()" class="ui green button">
+              <i class="checkmark icon"></i>
+              保存
+            </div>
+          </div>
+          </di>
+        </div>
       </div>
     </div>
-    <div class="ui bottom attached button" onclick="showEditProfile()"><i class="edit icon"></i> 修改资料 </div>
-    <div id="editProfile" class="ui modal">
-      <div class="header">
-        <i class="edit icon"></i>
-        修改资料
-      </div>
-      <div class="content">
-        <form id="editProfileForm" class="ui form">
-          <div class="inline field">
-            <label>头像</label>
-            <input name="avatar" type="file">
+    <div class="eleven wide column">
+      <div class="ui segment clear-shadow-and-border">
+        <h1><i class="android icon"></i>OAuth 应用管理</h1>
+        <div class="ui stackable four column grid">
+          <div class="column">
+            <div class="ui small circular rotate reveal image">
+              <img src="/static/assets/favicon.png" class="visible content" style="height:150px;width:150px;text-align: center">
+              <div class="hidden content" style="height:150px;width:150px;padding-top: 55px;text-align: center">
+                <button class="ui tiny green basic button">编辑</button>
+                <button class="ui tiny red basic button">删除</button>
+              </div>
+            </div>
           </div>
-          <div class="inline field">
-            <label>用户名</label>
-            <input name="username" type="text" value="{{.user.Username}}" placeholder="英文或数字">
+          <div class="column">
+            <div id="editOauthApp" class="ui modal">
+              <div class="header">
+                <i class="edit icon"></i>
+                Oauth2 应用
+              </div>
+              <div class="content">
+                <form id="editOauthAppForm" class="ui form">
+                  <div class="inline field">
+                    <label>头像</label>
+                    <input name="avatar" type="file">
+                  </div>
+                  <div class="inline field">
+                    <label>用户名</label>
+                    <input name="username" type="text" value="{{.user.Username}}" placeholder="英文或数字">
+                  </div>
+                  <div class="inline field">
+                    <label>简介</label>
+                    <input name="bio" type="text" autocomplete="nickname" value="{{.user.Bio}}">
+                  </div>
+                  <div class="inline field">
+                    <label>新密码</label>
+                    <input name="password" type="password" autocomplete="new-password" placeholder="至少 6 位">
+                  </div>
+                  <div class="inline field">
+                    <label>确认密码</label>
+                    <input name="repassword" type="password" autocomplete="new-password" placeholder="确认密码">
+                  </div>
+                  <div class="ui error message"></div>
+                  <div class="ui message">
+                    <p>头像更新有缓存，请不要着急。</p>
+                  </div>
+                </form>
+              </div>
+              <div class="actions">
+                <div class="ui cancel button">
+                  <i class="remove icon"></i>
+                  取消
+                </div>
+                <div onclick="editProfile()" class="ui green button">
+                  <i class="checkmark icon"></i>
+                  保存
+                </div>
+              </div>
+              </di>
+            </div>
+            <div class="ui small circular rotate reveal image">
+              <img src="/static/assets/favicon.png" class="visible content" style="height:150px;width:150px;">
+              <div class="hidden content" style="height:150px;width:150px;padding-top: 55px;text-align: center">
+                <button onclick="showModal('#editOauthApp')" class="ui green basic button">创建应用</button>
+              </div>
+            </div>
           </div>
-          <div class="inline field">
-            <label>简介</label>
-            <input name="bio" type="text" autocomplete="nickname" value="{{.user.Bio}}">
-          </div>
-          <div class="inline field">
-            <label>新密码</label>
-            <input name="password" type="password" autocomplete="new-password" placeholder="至少 6 位">
-          </div>
-          <div class="inline field">
-            <label>确认密码</label>
-            <input name="repassword" type="password" autocomplete="new-password" placeholder="确认密码">
-          </div>
-          <div class="ui error message">
-
-          </div>
-          <div class="ui message">
-            <p>头像更新有缓存，请不要着急。</p>
-          </div>
-        </form>
-      </div>
-      <div class="actions">
-        <div class="ui cancel button">
-          <i class="remove icon"></i>
-          取消
         </div>
-        <div onclick="editProfile()" class="ui green button">
-          <i class="checkmark icon"></i>
-          保存
-        </div>
       </div>
-      </di>
     </div>
   </div>
 </div>
 <script>
-  function showEditProfile() {
-    setFormError('#editProfileForm')
-    $('#editProfile').modal('show')
+  function showModal(modal) {
+    setFormError(modal + 'Form')
+    $(modal).modal('show')
   }
   // 设置表单错误
   function setFormError(ele, errors) {

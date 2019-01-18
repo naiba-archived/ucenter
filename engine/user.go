@@ -148,7 +148,7 @@ func userDelete(c *gin.Context) {
 
 	ucenter.DB.Delete(ucenter.Login{}, "user_id = ?", id)
 	ucenter.DB.Delete(ucenter.UserAuthorized{}, "user_id = ?", id)
-	ucenter.DB.Delete(ucenter.OsinClient{}, "extra LIKE ?", fmt.Sprintf("\"user\": %s,", id))
+	ucenter.DB.Delete(ucenter.OsinClient{}, "id LIKE ?", fmt.Sprintf("%s-%s", id, "%"))
 	ucenter.DB.Delete(ucenter.User{}, "id = ?", id)
 }
 

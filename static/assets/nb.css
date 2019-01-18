@@ -31,6 +31,9 @@
 .login-form {
   max-width: 450px;
 }
+#editOauthApp {
+  max-width: 450px;
+}
 #editProfile {
   max-width: 450px;
 }
