@@ -1,15 +1,15 @@
-{{define "common/user_nav"}}
+{{define "common/admin_nav"}}
 <div class="navbar">
   <div class="ui container">
     <div class="ui secondary menu">
-      <a href="/" class="item">
+      <a href="/admin/" class="item">
         <img src="/static/assets/favicon.png" /> &nbsp;&nbsp;
       </a>
       <div class="ui right dropdown item">
         {{.user.Username}} <i class="dropdown icon"></i>
         <div class="menu">
           <a href="/" class="item">个人中心</a>
-          {{if df_allow .user "pAdminPanel"}}<a href="/admin" class="item">管理中心</a>{{end}}
+          <a href="/admin" class="item">管理中心</a>
           <a href="/logout" class="item">登出</a>
         </div>
       </div>

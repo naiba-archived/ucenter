@@ -144,7 +144,8 @@ func ServWeb() {
 		mustLoginRoute.GET("/", index)
 		mustLoginRoute.GET("/logout", logout)
 		mustLoginRoute.PATCH("/profile", editProfileHandler)
-		mustLoginRoute.GET("/admin")
+		admin := mustLoginRoute.Group("/admin")
+		admin.GET("/", adminIndex)
 	}
 
 	// Oauth2

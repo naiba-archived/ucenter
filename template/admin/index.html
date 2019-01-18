@@ -1,0 +1,31 @@
+{{define "admin/index"}}
+{{template "common/header" .}}
+{{template "common/admin_nav" .}}
+<div class="ui container segment clear-shadow-and-border">
+  <div class="ui two column centered grid">
+    <div class="column">
+      <div class="ui small statistics">
+        <div class="statistic">
+          <div class="value"><i class="slideshare icon"></i> {{.data.user}} </div>
+          <div class="label">注册用户</div>
+        </div>
+        <div class="statistic">
+          <div class="value"><i class="app store icon"></i> {{.data.client}} </div>
+          <div class="label">三方应用 </div>
+        </div>
+        <div class="statistic">
+          <div class="value"><i class="android icon"></i> {{.data.login}} </div>
+          <div class="label">登录设备 </div>
+        </div>
+        <div class="statistic">
+          <div class="value"><i class="connectdevelop icon"></i> {{.data.auth}} </div>
+          <div class="label">应用授权 </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+</script>
+{{template "common/footer" .}}
+{{ end }}

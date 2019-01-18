@@ -22,7 +22,7 @@ import (
 var isImage = regexp.MustCompile(`^.*\.((png)|(jpeg)|(jpg)|(gif))$`)
 
 func index(c *gin.Context) {
-	c.HTML(http.StatusOK, "page/index", nbgin.Data(c, gin.H{}))
+	c.HTML(http.StatusOK, "user/index", nbgin.Data(c, gin.H{}))
 }
 
 func editProfileHandler(c *gin.Context) {

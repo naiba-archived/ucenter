@@ -18,6 +18,14 @@ type Oauth2Client struct {
 	}
 }
 
+// OsinClient MySQL 模型
+type OsinClient osin.DefaultClient
+
+// TableName 自定义表名
+func (oc OsinClient) TableName() string {
+	return "osin_client"
+}
+
 // ToOauth2Client 转换为客户端Model
 func ToOauth2Client(oc osin.Client) (*Oauth2Client, error) {
 	var err error
