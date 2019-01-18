@@ -2,9 +2,11 @@ package engine
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/naiba/ucenter"
 
+	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/gin-gonic/gin"
 	"github.com/naiba/ucenter/pkg/nbgin"
 )
@@ -20,5 +22,22 @@ func adminIndex(c *gin.Context) {
 		"login":  loginCount,
 		"client": clientCount,
 		"auth":   authCount,
+	}))
+}
+
+func adminUsers(c *gin.Context) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "15"))
+	var users []ucenter.User
+	paginator := pagination.Pagging(&pagination.Param{
+		DB:      ucenter.DB,
+		Page:    page,
+		Limit:   limit,
+		OrderBy: []string{"id desc"},
+		ShowSQL: true,
+	}, &users)
+
+	c.HTML(http.StatusOK, "admin/users", nbgin.Data(c, gin.H{
+		"users": paginator,
 	}))
 }

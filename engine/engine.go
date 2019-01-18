@@ -123,6 +123,9 @@ func ServWeb() {
 		"allow": func(user *ucenter.User, domain, project, perm string) bool {
 			return ucenter.RAM.Enforce(user.StrID(), domain, project, perm)
 		},
+		"add": func(a, b int) int {
+			return a + b
+		},
 	})
 	r.LoadHTMLGlob("template/**/*")
 
@@ -144,8 +147,14 @@ func ServWeb() {
 		mustLoginRoute.GET("/", index)
 		mustLoginRoute.GET("/logout", logout)
 		mustLoginRoute.PATCH("/profile", editProfileHandler)
-		admin := mustLoginRoute.Group("/admin")
+		mustLoginRoute.DELETE("/:id", deleteUser)
+	}
+
+	// 管理员路由
+	admin := mustLoginRoute.Group("/admin")
+	{
 		admin.GET("/", adminIndex)
+		admin.GET("/users", adminUsers)
 	}
 
 	// Oauth2

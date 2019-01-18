@@ -1,0 +1,81 @@
+{{define "admin/users"}}
+{{template "common/header" .}}
+{{template "common/admin_nav" .}}
+<div class="ui container segment clear-shadow-and-border">
+  <table class="ui celled striped table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>用户名</th>
+        <th>头像</th>
+        <th>简介</th>
+        <th>管理</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .data.users.Records}}
+      <tr>
+        <td>
+          <h4>{{.ID}}</h4>
+        </td>
+        <td>{{.Username}}</td>
+        <td><img class="ui avatar image" src="{{if .Avatar}}/upload/avatar/{{.ID}}{{else}}/static/assets/favicon.png{{end}}"></td>
+        <td>{{.Bio}} </td>
+        <td>
+          <div class="ui tiny buttons">
+            <button onclick="disableUser({{.ID}})" class="ui teal basic button">禁用</button>
+            <div class="or"></div>
+            <button onclick="deleteUser({{.ID}})" class="ui red basic button">删除</button>
+          </div>
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="5" id="pagination">
+        </th>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{{template "common/msgbox"}}
+<script>
+  function deleteUser(id) {
+    $.ajax({
+      url: '/' + id,
+      type: 'DELETE',
+      cache: false,
+    }).done((res) => {
+      window.location.reload()
+    }).fail((res) => {
+      showMsgbox("删除失败", res.responseText, function (m) {
+        m.modal('hide')
+      })
+    })
+  }
+  function disableUser(id) {
+  }
+  function toPage(page) {
+    window.location.href = "?page=" + page + "&limit=" + "{{.data.users.Limit }}"
+  }
+  function genPagination() {
+    var str = '<div class="ui right floated pagination menu">' +
+      '<a class="icon item" onclick="toPage({{.data.users.PrevPage}})">' +
+      '<i class="left chevron icon"></i></a>'
+    var page = parseInt("{{.data.users.Page }}")
+    var start = page - 2
+    if (start < 1) {
+      start = 1
+    }
+    for (let i = start; i < start + 5; i++) {
+      str += '<a class="item' + (i == page ? " active" : "") + '" onclick="toPage(' + i + ')">' + i + '</a>'
+    }
+    str += '<a class="icon item" onclick="toPage({{.data.users.NextPage}})">' +
+      '<i class="right chevron icon"></i></a></div>'
+    $('#pagination').html(str)
+  }
+  genPagination()
+</script>
+{{template "common/footer" .}}
+{{ end }}

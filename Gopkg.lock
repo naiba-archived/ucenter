@@ -26,6 +26,14 @@
   version = "v1.3.1"
 
 [[projects]]
+  branch = "master"
+  digest = "1:cf0163857cdc19eaac5ad413e76d58470e86f3bdeae6d3a3a512a4b25b87c169"
+  name = "github.com/biezhi/gorm-paginator"
+  packages = ["pagination"]
+  pruneopts = "UT"
+  revision = "76b8070a5f1f71bdee12122408900833c2559da1"
+
+[[projects]]
   digest = "1:05128b536df719c78ce919d51824bddfeca14c71254b2450c54ca984af318a52"
   name = "github.com/casbin/casbin"
   packages = [
@@ -310,6 +318,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/RangelReale/osin",
+    "github.com/biezhi/gorm-paginator/pagination",
     "github.com/casbin/casbin",
     "github.com/casbin/casbin/model",
     "github.com/casbin/gorm-adapter",

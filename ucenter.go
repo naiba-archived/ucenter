@@ -50,12 +50,15 @@ var (
 		"/signup":      nil,
 		"/logout":      nil,
 		"/oauth2/auth": nil,
+		"/:id":         nil,
 		"/admin/":      []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
+		"/admin/users": []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
 	}
 	// RouteTitle 页面标题
 	RouteTitle = map[string]string{
 		"/":            "个人中心",
 		"/admin/":      "管理中心",
+		"/admin/users": "用户管理",
 		"/login":       "用户登录",
 		"/signup":      "用户注册",
 		"/oauth2/auth": "用户授权",

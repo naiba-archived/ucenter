@@ -89,6 +89,24 @@ func editProfileHandler(c *gin.Context) {
 	}
 }
 
+func deleteUser(c *gin.Context) {
+	id := c.Param("id")
+	u := c.MustGet(ucenter.AuthUser).(*ucenter.User)
+	if u.StrID() != id && !ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel) {
+		c.HTML(http.StatusForbidden, "page/info", gin.H{
+			"icon":  "low vision",
+			"title": "权限不足",
+			"msg":   "您的权限不足以访问此页面哟",
+		})
+		return
+	}
+
+	ucenter.DB.Delete(ucenter.Login{}, "user_id = ?", id)
+	ucenter.DB.Delete(ucenter.UserAuthorized{}, "user_id = ?", id)
+	ucenter.DB.Delete(ucenter.OsinClient{}, "extra LIKE ?", fmt.Sprintf("\"user\": %s,", id))
+	ucenter.DB.Delete(ucenter.User{}, "id = ?", id)
+}
+
 func login(c *gin.Context) {
 	// 如果已登录，就跳转
 	if _, ok := c.Get(ucenter.AuthUser); ok {

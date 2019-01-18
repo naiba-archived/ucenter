@@ -8,9 +8,11 @@ import (
 // Data 写入数据
 func Data(c *gin.Context, data map[string]interface{}) gin.H {
 	u, _ := c.Get(ucenter.AuthUser)
+	path := c.MustGet(ucenter.RequestRouter).(string)
 	return gin.H{
-		"title": ucenter.RouteTitle[c.MustGet(ucenter.RequestRouter).(string)],
+		"title": ucenter.RouteTitle[path],
 		"user":  u,
+		"path":  path,
 		"data":  data,
 	}
 }
