@@ -43,11 +43,14 @@ const (
 )
 
 var (
-	// RouterSkipAuthorize 不需要认证的路由
-	RouterSkipAuthorize = map[string]interface{}{
-		"/static": nil,
-		"/upload": nil,
-		"/admin":  []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
+	// RouteNeedAuthorize 需要认证的路由
+	RouteNeedAuthorize = map[string]interface{}{
+		"/":            nil,
+		"/login":       nil,
+		"/signup":      nil,
+		"/logout":      nil,
+		"/oauth2/auth": nil,
+		"/admin":       []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
 	}
 	// RAM 权限系统
 	RAM *casbin.Enforcer

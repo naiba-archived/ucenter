@@ -20,20 +20,22 @@ func anonymousMustLogin(c *gin.Context) {
 }
 
 func authorizeMiddleware(c *gin.Context) {
-	//http://localhost:8080/oauth2/auth?response_type=code&client_id=1234&state=xyz&scope=baseinfo,test&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fappauth%2Fcode
-	// 跳过无需认证的路由
+
+	// 获取路由path
 	url := c.Request.URL.Path
 	for _, p := range c.Params {
 		url = strings.Replace(url, p.Value, ":"+p.Key, 1)
 	}
 	c.Set(ucenter.RequestRouter, url)
+
+	// 跳过鉴权的路由
 	var val interface{}
 	var has bool
-	// 跳过鉴权的路由
-	if val, has = ucenter.RouterSkipAuthorize[url]; has && val == nil {
+	if val, has = ucenter.RouteNeedAuthorize[url]; !has {
 		return
 	}
 	var authorizedUser *ucenter.User
+
 	// 1. 从 Cookie 认证
 	tk, err := c.Cookie(ucenter.AuthCookieName)
 	if err == nil {
@@ -43,6 +45,7 @@ func authorizeMiddleware(c *gin.Context) {
 			c.Set(ucenter.AuthType, ucenter.AuthTypeCookie)
 		}
 	}
+
 	// 2. 从 AccessToken 认证
 	bearer := osin.CheckBearerAuth(c.Request)
 	if bearer != nil {
@@ -54,12 +57,8 @@ func authorizeMiddleware(c *gin.Context) {
 		}
 	}
 
-	if authorizedUser != nil {
-		c.Set(ucenter.AuthUser, authorizedUser)
-	}
-
 	// 高级鉴权路由
-	if has && val != nil {
+	if val != nil {
 		var params = make([]interface{}, 0)
 		if authorizedUser == nil || !ucenter.RAM.Enforce(append(append(params, authorizedUser.StrID()), val.([]interface{})...)...) {
 			c.HTML(http.StatusForbidden, "page/info", gin.H{
@@ -68,5 +67,9 @@ func authorizeMiddleware(c *gin.Context) {
 				"msg":   "您的权限不足以访问此页面哟",
 			})
 		}
+	}
+
+	if authorizedUser != nil {
+		c.Set(ucenter.AuthUser, authorizedUser)
 	}
 }
