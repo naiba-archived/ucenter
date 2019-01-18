@@ -174,6 +174,10 @@ func logout(c *gin.Context) {
 		c.String(http.StatusForbidden, "CSRF Protection")
 		return
 	}
+	token, err := c.Cookie(ucenter.AuthCookieName)
+	if err == nil {
+		ucenter.DB.Unscoped().Delete(ucenter.Login{}, "token = ?", token)
+	}
 	nbgin.SetCookie(c, -1, ucenter.AuthCookieName, "")
 	nbgin.SetNoCache(c)
 	if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
