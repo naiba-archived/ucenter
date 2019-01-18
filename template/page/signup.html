@@ -33,7 +33,7 @@
         {{if or .data.errors.Username .data.errors.Password}}
         <ul class="list">
           {{if .data.errors.Username}}
-          <li>{{.errors.Username}}</li>
+          <li>{{.data.errors.Username}}</li>
           {{ end }}
           {{if .data.errors.Password}}
           <li>{{.errors.Password}}</li>

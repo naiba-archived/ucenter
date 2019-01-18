@@ -6,6 +6,7 @@ import (
 	"encoding/pem"
 	"html/template"
 	"log"
+	"net/http"
 
 	"github.com/naiba/ucenter/pkg/ram"
 
@@ -155,12 +156,24 @@ func ServWeb() {
 		o.GET("token", oauth2token)
 		o.GET("info", oauth2info)
 		o.GET("publickeys", openIDConnectPublickeys)
-	}
 
-	// OpenIDConnect
-	{
+		// OpenIDConnect
 		r.GET("/.well-known/openid-configuration", openIDConnectDiscovery)
 	}
 
+	r.NoRoute(func(c *gin.Context) {
+		c.HTML(http.StatusNotFound, "page/info", gin.H{
+			"title": "无法找到页面",
+			"icon":  "rocket",
+			"msg":   "页面可能已飞去火星",
+		})
+	})
+	r.NoMethod(func(c *gin.Context) {
+		c.HTML(http.StatusForbidden, "page/info", gin.H{
+			"title": "发现新大陆",
+			"icon":  "paw",
+			"msg":   "没有这个请求方式哦",
+		})
+	})
 	r.Run(":8080")
 }

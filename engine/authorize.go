@@ -58,13 +58,14 @@ func authorizeMiddleware(c *gin.Context) {
 		c.Set(ucenter.AuthUser, authorizedUser)
 	}
 
-	//授权的路由
+	// 高级鉴权路由
 	if has && val != nil {
 		var params = make([]interface{}, 0)
 		if authorizedUser == nil || !ucenter.RAM.Enforce(append(append(params, authorizedUser.StrID()), val.([]interface{})...)...) {
 			c.HTML(http.StatusForbidden, "page/info", gin.H{
+				"icon":  "low vision",
 				"title": "权限不足",
-				"msg":   "访问被禁止，权限不足",
+				"msg":   "您的权限不足以访问此页面哟",
 			})
 		}
 	}
