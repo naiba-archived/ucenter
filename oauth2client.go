@@ -17,9 +17,28 @@ type Oauth2Client struct {
 	}
 }
 
+// OsinClient Osin Origin
+type OsinClient struct {
+	ID          string
+	RedirectURI string
+	Secret      string
+	Extra       string
+}
+
 // TableName 自定义表名
-func (c Oauth2Client) TableName() string {
+func (c OsinClient) TableName() string {
 	return "osin_client"
+}
+
+// ToOauth2Client 转换为自定义model
+func (c OsinClient) ToOauth2Client() (Oauth2Client, error) {
+	var err error
+	var oc Oauth2Client
+	err = json.Unmarshal([]byte(c.Extra), &oc.Ext)
+	oc.ID = c.ID
+	oc.RedirectURI = c.RedirectURI
+	oc.Secret = c.Secret
+	return oc, err
 }
 
 // ToOsinClient 转换为OsinClient

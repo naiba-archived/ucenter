@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -28,7 +29,18 @@ import (
 var isImage = regexp.MustCompile(`^.*\.((png)|(jpeg)|(jpg)|(gif))$`)
 
 func index(c *gin.Context) {
-	c.HTML(http.StatusOK, "user/index", nbgin.Data(c, gin.H{}))
+	u := c.MustGet(ucenter.AuthUser).(*ucenter.User)
+	var appsOrigin []ucenter.OsinClient
+	ucenter.DB.Model(ucenter.OsinClient{}).Where("id LIKE ?", u.StrID()+"-%").Find(&appsOrigin)
+	apps := make([]ucenter.Oauth2Client, 0)
+	var x ucenter.Oauth2Client
+	for i := 0; i < len(appsOrigin); i++ {
+		x, _ = appsOrigin[i].ToOauth2Client()
+		apps = append(apps, x)
+	}
+	c.HTML(http.StatusOK, "user/index", nbgin.Data(c, gin.H{
+		"apps": apps,
+	}))
 }
 
 func userStatus(c *gin.Context) {
@@ -352,7 +364,7 @@ func editOauth2App(c *gin.Context) {
 		} else if avatar.Size > 1024*1024*2 {
 			errors["editOauthAppForm.应用名"] = "头像不能大于 2 M"
 		}
-	} else {
+	} else if ef.ID == "" {
 		errors["editOauthAppForm.圆图标"] = "圆图标必须上传"
 	}
 
@@ -362,7 +374,8 @@ func editOauth2App(c *gin.Context) {
 	// 验证管理权
 	if len(ef.ID) > 0 {
 		oc, err := osinStore.GetClient(ef.ID)
-		if err != nil || (!strings.HasPrefix(ef.ID, u.StrID()+"-") || ucenter.RAM.Enforce(u.ID, ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel)) {
+		if err != nil || (!strings.HasPrefix(ef.ID, u.StrID()+"-") && ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel)) {
+			log.Println(err, strings.HasPrefix(ef.ID, u.StrID()+"-"), ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel))
 			errors["editOauthAppForm.应用名"] = "ID错误"
 		} else {
 			client, err = ucenter.ToOauth2Client(oc)
@@ -397,6 +410,7 @@ func editOauth2App(c *gin.Context) {
 		var oc osin.Client
 		client.Ext.Name = ef.Name
 		client.Ext.Desc = ef.Desc
+		client.RedirectURI = ef.RedirectURI
 		oc, err = client.ToOsinClient()
 		if isNewClient {
 			err = osinStore.CreateClient(oc)

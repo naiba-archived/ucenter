@@ -66,34 +66,37 @@
       <div class="ui segment clear-shadow-and-border">
         <h1><i class="android icon"></i>OAuth 应用管理</h1>
         <div class="ui stackable four column grid">
+          {{range $i,$v := .data.apps}}
           <div class="column">
             <div class="ui small circular rotate reveal image">
-              <img src="/static/assets/favicon.png" class="visible content" style="height:150px;width:150px;text-align: center">
+              <img src="/upload/avatar/{{$v.ID}}" class="visible content" style="height:150px;width:150px;text-align: center">
               <div class="hidden content" style="height:150px;width:150px;padding-top: 55px;text-align: center">
-                <button class="ui tiny green basic button">编辑</button>
-                <button class="ui tiny red basic button">删除</button>
+                <button onclick="editApp({{$i}})" class="ui tiny green basic button">编辑</button>
+                <button onclick="deleteApp({{$i}})" class="ui tiny red basic button">删除</button>
               </div>
             </div>
           </div>
+          {{end}}
           <div class="column">
-            <div id="editOauthApp" data-app="null" class="ui modal">
+            <div id="editOauthApp" class="ui modal">
               <div class="header">
                 <i class="edit icon"></i>
                 Oauth2 应用
               </div>
               <div class="content">
                 <form id="editOauthAppForm" class="ui form">
+                  <input name="id" type="hidden">
                   <div class="inline field">
                     <label>圆图标</label>
                     <input name="avatar" type="file">
                   </div>
                   <div class="inline field">
                     <label>应用名</label>
-                    <input name="name" type="text" value="" placeholder="英文或数字">
+                    <input name="name" type="text" value="">
                   </div>
                   <div class="inline field">
                     <label>简介</label>
-                    <input name="desc" type="text" autocomplete="nickname" value="">
+                    <input name="desc" type="text" value="">
                   </div>
                   <div class="inline field">
                     <label>跳转链接</label>
@@ -101,7 +104,7 @@
                   </div>
                   <div class="inline field">
                     <label>密钥</label>
-                    <input readonly type="text" value="创建后显示">
+                    <input name="secret" readonly type="text" value="创建后显示">
                   </div>
                   <div class="ui error message"></div>
                   <div class="ui message">
@@ -124,7 +127,7 @@
             <div class="ui small circular rotate reveal image">
               <img src="/static/assets/favicon.png" class="visible content" style="height:150px;width:150px;">
               <div class="hidden content" style="height:150px;width:150px;padding-top: 55px;text-align: center">
-                <button onclick="showModal('#editOauthApp')" class="ui green basic button">创建应用</button>
+                <button onclick="editApp(undefined)" class="ui green basic button">创建应用</button>
               </div>
             </div>
           </div>
@@ -134,6 +137,50 @@
   </div>
 </div>
 <script>
+  const apps = {{ .data.apps }};
+  function editApp(index) {
+    var inputs = {};
+    const is = $('#editOauthApp input')
+    for (let i = 0; i < is.length; i++) {
+      const e = $(is[i]);
+      switch (e.attr('name')) {
+        case 'name':
+          inputs['Name'] = e
+          break;
+        case 'id':
+          inputs['ID'] = e
+          break;
+        case 'desc':
+          inputs['Desc'] = e
+          break;
+        case 'secret':
+          inputs['Secret'] = e
+          break;
+        case 'redirect_uri':
+          inputs['RedirectURI'] = e
+          break;
+      }
+    }
+    if (index !== undefined) {
+      Object.keys(apps[index]).forEach((k) => {
+        if (k == 'Ext') {
+          inputs.Name.val(apps[index][k].name)
+          inputs.Desc.val(apps[index][k].desc)
+        } else {
+          inputs[k].val(apps[index][k])
+        }
+      })
+    } else {
+      Object.keys(inputs).forEach((k) => {
+        const e = inputs[k]
+        e.val(e.attr('name') == 'secret' ? '创建后显示' : "")
+      })
+    }
+    showModal('#editOauthApp')
+  }
+  function deleteApp(index) {
+    
+  }
   function showModal(modal) {
     setFormError(modal + 'Form')
     $(modal).modal('show')
