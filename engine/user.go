@@ -96,7 +96,7 @@ func login(c *gin.Context) {
 		if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
 			c.Redirect(http.StatusFound, returnURL)
 		} else {
-			c.Redirect(http.StatusMovedPermanently, "/")
+			c.Redirect(http.StatusFound, "/")
 		}
 		return
 	}
@@ -114,7 +114,7 @@ func logout(c *gin.Context) {
 	if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
 		c.Redirect(http.StatusFound, returnURL)
 	} else {
-		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		c.Redirect(http.StatusFound, "/login")
 	}
 }
 
@@ -174,7 +174,7 @@ func loginHandler(c *gin.Context) {
 	if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
 		c.Redirect(http.StatusFound, returnURL)
 	} else {
-		c.Redirect(http.StatusMovedPermanently, "/")
+		c.Redirect(http.StatusFound, "/")
 	}
 }
 
@@ -185,7 +185,7 @@ func signup(c *gin.Context) {
 		if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
 			c.Redirect(http.StatusFound, returnURL)
 		} else {
-			c.Redirect(http.StatusMovedPermanently, "/")
+			c.Redirect(http.StatusFound, "/")
 		}
 		return
 	}

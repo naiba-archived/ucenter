@@ -34,3 +34,11 @@ func SetCookie(c *gin.Context, second int, k, v string) {
 func SetNoCache(c *gin.Context) {
 	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 }
+
+// JSRedirect JS跳转
+func JSRedirect(c *gin.Context, status int, url string) {
+	c.Writer.WriteString(`<script>
+	window.location.hrefx="` + url + `"
+	</script>`)
+	c.Status(status)
+}
