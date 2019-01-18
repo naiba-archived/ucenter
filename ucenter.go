@@ -49,6 +49,7 @@ var (
 		"/login":             nil,
 		"/signup":            nil,
 		"/logout":            nil,
+		"/app":               nil,
 		"/oauth2/auth":       nil,
 		"/:id":               nil,
 		"/admin/":            []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},

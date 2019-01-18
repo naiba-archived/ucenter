@@ -121,7 +121,7 @@ func editProfileHandler(c *gin.Context) {
 	}
 	if f != nil {
 		f.Seek(0, 0)
-		out, err := os.Create(fmt.Sprintf("upload/avatar/%d", u.ID))
+		out, err := os.Create("upload/avatar/" + u.StrID())
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -316,9 +316,9 @@ func signupHandler(c *gin.Context) {
 func editOauth2App(c *gin.Context) {
 	type Oauth2AppForm struct {
 		ID          string `form:"id" cfn:"ID" binding:"omitempty,min=3,max=255"`
-		Name        string `form:"name" cfn:"名称" binding:"required,min=1,max=255"`
+		Name        string `form:"name" cfn:"应用名" binding:"required,min=1,max=255"`
 		Desc        string `form:"desc" cfn:"简介" binding:"required,min=1,max=255"`
-		RedirectURI string `form:"reditect_uri" cfn:"跳转" binding:"required,min=1,max=255"`
+		RedirectURI string `form:"redirect_uri" cfn:"跳转链接" binding:"required,min=1,max=255"`
 	}
 
 	var ef Oauth2AppForm
@@ -336,22 +336,24 @@ func editOauth2App(c *gin.Context) {
 	if err == nil {
 		f, err = avatar.Open()
 		if err != nil {
-			errors["editOauthAppForm.头像"] = err.Error()
+			errors["editOauthAppForm.应用名"] = err.Error()
 		} else {
 			defer f.Close()
 			buff := make([]byte, 512) // why 512 bytes ? see http://golang.org/pkg/net/http/#DetectContentType
 			_, err = f.Read(buff)
 			if err != nil {
-				errors["editOauthAppForm.头像"] = err.Error()
+				errors["editOauthAppForm.应用名"] = err.Error()
 			} else if !strings.HasPrefix(http.DetectContentType(buff), "image/") {
-				errors["editOauthAppForm.头像"] = "头像不是图片文件"
+				errors["editOauthAppForm.应用名"] = "头像不是图片文件"
 			}
 		}
 		if !isImage.MatchString(avatar.Filename) {
-			errors["editOauthAppForm.头像"] = "头像不是图片文件"
+			errors["editOauthAppForm.应用名"] = "头像不是图片文件"
 		} else if avatar.Size > 1024*1024*2 {
-			errors["editOauthAppForm.头像"] = "头像不能大于 2 M"
+			errors["editOauthAppForm.应用名"] = "头像不能大于 2 M"
 		}
+	} else {
+		errors["editOauthAppForm.圆图标"] = "圆图标必须上传"
 	}
 
 	var client ucenter.Oauth2Client
@@ -361,27 +363,29 @@ func editOauth2App(c *gin.Context) {
 	if len(ef.ID) > 0 {
 		oc, err := osinStore.GetClient(ef.ID)
 		if err != nil || (!strings.HasPrefix(ef.ID, u.StrID()+"-") || ucenter.RAM.Enforce(u.ID, ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel)) {
-			errors["editOauthAppForm.头像"] = "ID错误"
+			errors["editOauthAppForm.应用名"] = "ID错误"
 		} else {
 			client, err = ucenter.ToOauth2Client(oc)
 			if err != nil {
-				errors["editOauthAppForm.头像"] = "服务器错误，解析JSON"
+				errors["editOauthAppForm.应用名"] = "服务器错误，解析JSON"
 			}
 		}
 	} else {
 		isNewClient = true
 		client.ID, err = genClientID(u.StrID())
 		if err != nil {
-			errors["editOauthAppForm.头像"] = "服务器错误，解析JSON"
+			errors["editOauthAppForm.应用名"] = "服务器错误，解析JSON"
+		} else {
+			client.Secret = com.RandomString(16)
 		}
 	}
 
 	// 储存头像
 	if len(errors) == 0 && f != nil {
 		f.Seek(0, 0)
-		out, err := os.Create(fmt.Sprintf("upload/avatar/%d", u.ID))
+		out, err := os.Create("upload/avatar/" + client.ID)
 		if err != nil {
-			errors["editOauthAppForm.头像"] = "服务器错误，头像储存"
+			errors["editOauthAppForm.应用名"] = "服务器错误，头像储存"
 		} else {
 			defer out.Close()
 			io.Copy(out, f)
@@ -391,6 +395,8 @@ func editOauth2App(c *gin.Context) {
 	// 应用入库
 	if len(errors) == 0 {
 		var oc osin.Client
+		client.Ext.Name = ef.Name
+		client.Ext.Desc = ef.Desc
 		oc, err = client.ToOsinClient()
 		if isNewClient {
 			err = osinStore.CreateClient(oc)
@@ -398,7 +404,7 @@ func editOauth2App(c *gin.Context) {
 			err = osinStore.UpdateClient(oc)
 		}
 		if err != nil {
-			errors["editOauthAppForm.头像"] = "存入数据库出错"
+			errors["editOauthAppForm.应用名"] = "存入数据库出错"
 		}
 	}
 
