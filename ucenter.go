@@ -55,6 +55,7 @@ var (
 		"/user/:id":          nil,
 		"/admin/":            []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
 		"/admin/users":       []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
+		"/admin/apps":        []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
 		"/admin/user/status": []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
 	}
 	// RouteTitle 页面标题
@@ -62,6 +63,7 @@ var (
 		"/":            "个人中心",
 		"/admin/":      "管理中心",
 		"/admin/users": "用户管理",
+		"/admin/apps":  "应用管理",
 		"/login":       "用户登录",
 		"/signup":      "用户注册",
 		"/oauth2/auth": "用户授权",

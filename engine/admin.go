@@ -41,3 +41,29 @@ func adminUsers(c *gin.Context) {
 		"users": paginator,
 	}))
 }
+
+func adminApps(c *gin.Context) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "15"))
+	var appsOrigin []ucenter.OsinClient
+	paginator := pagination.Pagging(&pagination.Param{
+		DB:      ucenter.DB,
+		Page:    page,
+		Limit:   limit,
+		OrderBy: []string{"id desc"},
+		ShowSQL: true,
+	}, &appsOrigin)
+
+	var apps []ucenter.Oauth2Client
+	var appOrigin ucenter.Oauth2Client
+	for i := 0; i < len(appsOrigin); i++ {
+		appOrigin, _ = appsOrigin[i].ToOauth2Client()
+		apps = append(apps, appOrigin)
+	}
+
+	paginator.Records = apps
+
+	c.HTML(http.StatusOK, "admin/apps", nbgin.Data(c, gin.H{
+		"apps": paginator,
+	}))
+}

@@ -169,6 +169,7 @@ func ServWeb() {
 	{
 		admin.GET("/", adminIndex)
 		admin.GET("/users", adminUsers)
+		admin.GET("/apps", adminApps)
 		admin.POST("/user/status", userStatus)
 	}
 
