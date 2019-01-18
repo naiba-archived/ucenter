@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -23,6 +24,30 @@ var isImage = regexp.MustCompile(`^.*\.((png)|(jpeg)|(jpg)|(gif))$`)
 
 func index(c *gin.Context) {
 	c.HTML(http.StatusOK, "user/index", nbgin.Data(c, gin.H{}))
+}
+
+func userStatus(c *gin.Context) {
+	if !strings.Contains(c.Request.Referer(), "://"+ucenter.Domain+"/") {
+		c.String(http.StatusForbidden, "CSRF Protection")
+		return
+	}
+	type userStatusForm struct {
+		ID     uint `form:"id" binding:"required,numeric,min=1"`
+		Status int  `form:"status" bindimg:"required,numeric"`
+	}
+
+	var usf userStatusForm
+	// 验证用户输入
+	err := c.ShouldBind(&usf)
+	if usf.Status != 0 && usf.Status != ucenter.StatusSuspended {
+		err = errors.New("不支持的状态")
+	}
+	if err == nil {
+		err = ucenter.DB.Model(ucenter.User{}).Where("id = ?", usf.ID).Select("status").Update(map[string]interface{}{"status": usf.Status}).Error
+	}
+	if err != nil {
+		c.AbortWithError(http.StatusForbidden, err)
+	}
 }
 
 func editProfileHandler(c *gin.Context) {
@@ -89,7 +114,7 @@ func editProfileHandler(c *gin.Context) {
 	}
 }
 
-func deleteUser(c *gin.Context) {
+func userDelete(c *gin.Context) {
 	id := c.Param("id")
 	u := c.MustGet(ucenter.AuthUser).(*ucenter.User)
 	if u.StrID() != id && !ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel) {

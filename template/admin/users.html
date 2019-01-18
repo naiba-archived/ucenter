@@ -23,7 +23,9 @@
         <td>{{.Bio}} </td>
         <td>
           <div class="ui tiny buttons">
-            <button onclick="disableUser({{.ID}})" class="ui teal basic button">禁用</button>
+            <button onclick="setUserStatus({{.ID}},{{if eq .Status -1}}0{{else}}-1{{end}})" class="ui teal basic button">
+              {{if eq .Status -1}}启用{{else}}禁用{{end}}
+            </button>
             <div class="or"></div>
             <button onclick="deleteUser({{.ID}})" class="ui red basic button">删除</button>
           </div>
@@ -54,7 +56,10 @@
       })
     })
   }
-  function disableUser(id) {
+  function setUserStatus(id, status) {
+    $.post('/admin/user/status', { id: id, status: status }, (data, status) => {
+      window.location.reload()
+    })
   }
   function toPage(page) {
     window.location.href = "?page=" + page + "&limit=" + "{{.data.users.Limit }}"

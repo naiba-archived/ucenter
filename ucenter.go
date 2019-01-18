@@ -36,7 +36,7 @@ const (
 	// DBDSN 数据库连接字符串
 	DBDSN = "root@tcp(localhost:3306)/ucenter?parseTime=True&loc=Asia%2FShanghai"
 	// Domain 系统域名
-	Domain = "localhost"
+	Domain = "localhost:8080"
 
 	// DebugAble 允许调试
 	DebugAble = true
@@ -45,14 +45,15 @@ const (
 var (
 	// RouteNeedAuthorize 需要认证的路由
 	RouteNeedAuthorize = map[string]interface{}{
-		"/":            nil,
-		"/login":       nil,
-		"/signup":      nil,
-		"/logout":      nil,
-		"/oauth2/auth": nil,
-		"/:id":         nil,
-		"/admin/":      []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
-		"/admin/users": []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
+		"/":                  nil,
+		"/login":             nil,
+		"/signup":            nil,
+		"/logout":            nil,
+		"/oauth2/auth":       nil,
+		"/:id":               nil,
+		"/admin/":            []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
+		"/admin/users":       []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
+		"/admin/user/status": []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
 	}
 	// RouteTitle 页面标题
 	RouteTitle = map[string]string{

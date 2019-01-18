@@ -70,6 +70,15 @@ func authorizeMiddleware(c *gin.Context) {
 	}
 
 	if authorizedUser != nil {
+		if authorizedUser.Status == ucenter.StatusSuspended {
+			c.HTML(http.StatusForbidden, "page/info", gin.H{
+				"icon":  "shield alternate",
+				"title": "禁止通行",
+				"msg":   "您的账户已被禁用，具体原因请联系管理员。",
+			})
+			c.Abort()
+			return
+		}
 		c.Set(ucenter.AuthUser, authorizedUser)
 	}
 }

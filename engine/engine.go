@@ -147,7 +147,7 @@ func ServWeb() {
 		mustLoginRoute.GET("/", index)
 		mustLoginRoute.GET("/logout", logout)
 		mustLoginRoute.PATCH("/profile", editProfileHandler)
-		mustLoginRoute.DELETE("/:id", deleteUser)
+		mustLoginRoute.DELETE("/:id", userDelete)
 	}
 
 	// 管理员路由
@@ -155,6 +155,7 @@ func ServWeb() {
 	{
 		admin.GET("/", adminIndex)
 		admin.GET("/users", adminUsers)
+		admin.POST("/user/status", userStatus)
 	}
 
 	// Oauth2
