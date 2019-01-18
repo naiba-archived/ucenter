@@ -10,7 +10,7 @@
           <a class="header">{{.user.Username}}</a>
           <div class="meta"><span class="date">{{.user.CreatedAt}} 加入</span></div>
           <div class="description">
-            {{if .user.Bio}}{{.user.Bio}}{{else}}该用户很神秘，并没有留下简介。{{end}}
+            {{if .user.Bio}}{{.user.Bio}}{{else}}这么懒的吗？留个简介呗。{{end}}
           </div>
         </div>
         <div class="ui bottom attached button" onclick="showModal('#editProfile')"><i class="edit icon"></i> 修改资料

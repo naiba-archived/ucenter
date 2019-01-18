@@ -4,10 +4,13 @@ import (
 	"crypto/x509"
 	"database/sql"
 	"encoding/pem"
+	"errors"
 	"html/template"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/naiba/com"
 
 	"github.com/naiba/ucenter/pkg/ram"
 
@@ -98,6 +101,7 @@ CKuHRG+AP579dncdUnOMvfXOtkdM4vk0+hWASBQzM9xzVcztCa+koAugjVaLS9A+
 	if err != nil {
 		log.Fatalf("failed to create jwtSigner: %v", err)
 	}
+
 	openIDPublicKeys = &jose.JSONWebKeySet{
 		Keys: []jose.JSONWebKey{
 			jose.JSONWebKey{
@@ -156,6 +160,7 @@ func ServWeb() {
 		mustLoginRoute.GET("/logout", logout)
 		mustLoginRoute.PATCH("/", editProfileHandler)
 		mustLoginRoute.DELETE("/:id", userDelete)
+		mustLoginRoute.POST("/app", editOauth2App)
 	}
 
 	// 管理员路由
@@ -195,4 +200,15 @@ func ServWeb() {
 		})
 	})
 	r.Run(":8080")
+}
+
+func genClientID(uid string) (id string, err error) {
+	for i := 0; i < 100; i++ {
+		id = uid + "-" + com.RandomString(6)
+		if _, err = osinStore.GetClient(id); err == nil {
+			continue
+		}
+		return id, nil
+	}
+	return "", errors.New("genClientID 重试次数达到限制。")
 }
