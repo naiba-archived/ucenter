@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -22,6 +23,37 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func appStatus(c *gin.Context) {
+	if !strings.Contains(c.Request.Referer(), "://"+ucenter.Domain+"/") {
+		c.String(http.StatusForbidden, "CSRF Protection")
+		return
+	}
+	type appStatusForm struct {
+		ID     string `form:"id" binding:"required,min=1"`
+		Status int    `form:"status" bindimg:"required,numeric"`
+	}
+
+	var asf appStatusForm
+	// 验证用户输入
+	err := c.ShouldBind(&asf)
+	if asf.Status != 0 && asf.Status != ucenter.StatusOauthClientSuspended {
+		err = errors.New("不支持的状态")
+	}
+	if err == nil {
+		var clientOrigin ucenter.OsinClient
+		err = ucenter.DB.Model(ucenter.OsinClient{}).Where("id = ?", asf.ID).Find(&clientOrigin).Error
+		if err == nil {
+			oc, _ := clientOrigin.ToOauth2Client()
+			oc.Ext.Status = asf.Status
+			c, _ := oc.ToOsinClient()
+			err = osinStore.UpdateClient(c)
+		}
+	}
+	if err != nil {
+		c.AbortWithError(http.StatusForbidden, err)
+	}
+}
+
 func oauth2info(c *gin.Context) {
 	resp := osinServer.NewResponse()
 	defer resp.Close()
@@ -37,6 +69,15 @@ func oauth2auth(c *gin.Context) {
 	defer resp.Close()
 
 	if ar := osinServer.HandleAuthorizeRequest(resp, c.Request); ar != nil {
+		oc, _ := ucenter.ToOauth2Client(ar.Client)
+		if oc.Ext.Status == ucenter.StatusOauthClientSuspended {
+			c.HTML(http.StatusForbidden, "page/info", gin.H{
+				"icon":  "shield alternate",
+				"title": "禁止通行",
+				"msg":   "应用已被禁用，无法登陆，具体原因请联系管理员。",
+			})
+			return
+		}
 		user, ok := c.Get(ucenter.AuthUser)
 		if ok {
 			user := user.(*ucenter.User)
@@ -245,14 +286,17 @@ func editOauth2App(c *gin.Context) {
 	// 验证管理权
 	if len(ef.ID) > 0 {
 		oc, err := osinStore.GetClient(ef.ID)
-		if err != nil || (!strings.HasPrefix(ef.ID, u.StrID()+"-") && ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel)) {
-			log.Println(err, strings.HasPrefix(ef.ID, u.StrID()+"-"), ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel))
+		isAdmin := ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel)
+		if err != nil || (!strings.HasPrefix(ef.ID, u.StrID()+"-") && !isAdmin) {
 			errors["editOauthAppForm.应用名"] = "ID错误"
 		} else {
 			client, err = ucenter.ToOauth2Client(oc)
 			if err != nil {
 				errors["editOauthAppForm.应用名"] = "服务器错误，解析JSON"
 			}
+		}
+		if client.Ext.Status == ucenter.StatusOauthClientSuspended && !isAdmin {
+			errors["editOauthAppForm.应用名"] = "应用已被禁用，无法进行操作"
 		}
 	} else {
 		isNewClient = true

@@ -57,6 +57,7 @@ var (
 		"/admin/users":       []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
 		"/admin/apps":        []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
 		"/admin/user/status": []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
+		"/admin/app/status":  []interface{}{ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel},
 	}
 	// RouteTitle 页面标题
 	RouteTitle = map[string]string{

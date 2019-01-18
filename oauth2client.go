@@ -6,6 +6,11 @@ import (
 	"github.com/RangelReale/osin"
 )
 
+const (
+	// StatusOauthClientSuspended 禁用应用
+	StatusOauthClientSuspended = -1
+)
+
 // Oauth2Client Oauth2 客户端
 type Oauth2Client struct {
 	ID          string

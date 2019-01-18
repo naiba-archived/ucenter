@@ -171,6 +171,7 @@ func ServWeb() {
 		admin.GET("/users", adminUsers)
 		admin.GET("/apps", adminApps)
 		admin.POST("/user/status", userStatus)
+		admin.POST("/app/status", appStatus)
 	}
 
 	// Oauth2
