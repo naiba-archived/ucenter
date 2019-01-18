@@ -64,7 +64,26 @@
     </div>
     <div class="eleven wide column">
       <div class="ui segment clear-shadow-and-border">
-        <h1><i class="android icon"></i>我的 OAuth 应用</h1>
+        <h1><i class="app store icon"></i>全站 OAuth 应用</h1>
+        <div class="ui stackable four column grid">
+          {{range $i,$v := .data.allapps}}
+          <div class="column">
+            <div class="ui small circular rotate reveal image">
+              <img src="/upload/avatar/{{$v.ID}}" class="visible content" style="height:150px;width:150px;text-align: center">
+              <div class="hidden content" style="height:150px;width:150px;padding-top: 55px;text-align: center">
+                <a {{if eq $v.Ext.Status -1}} {{else}} class="ui green basic button" {{end}} {{if eq $v.Ext.Status -1}}
+                  {{else}} href="{{$v.Ext.URL}}" target="_black" {{end}}>{{$v.Ext.Name}}{{if eq $v.Ext.Status -1}} <div class="ui image label">
+                      <img src="/static/assets/favicon.png">已被禁用
+                    </div>{{end}}</a>
+                <p>{{$v.Ext.Desc}}</p>
+              </div>
+            </div>
+          </div>
+          {{end}}
+        </div>
+      </div>
+      <div class="ui segment clear-shadow-and-border">
+        <h1><i class="app store icon"></i>我的 OAuth 应用</h1>
         <div class="ui stackable four column grid">
           {{range $i,$v := .data.apps}}
           <div class="column">

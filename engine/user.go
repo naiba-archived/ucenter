@@ -27,16 +27,21 @@ var isImage = regexp.MustCompile(`^.*\.((png)|(jpeg)|(jpg)|(gif))$`)
 
 func index(c *gin.Context) {
 	u := c.MustGet(ucenter.AuthUser).(*ucenter.User)
-	var appsOrigin []ucenter.OsinClient
-	ucenter.DB.Model(ucenter.OsinClient{}).Where("id LIKE ?", u.StrID()+"-%").Find(&appsOrigin)
+	var allAppsOrigin []ucenter.OsinClient
+	ucenter.DB.Model(ucenter.OsinClient{}).Find(&allAppsOrigin)
 	apps := make([]ucenter.Oauth2Client, 0)
+	allapps := make([]ucenter.Oauth2Client, 0)
 	var x ucenter.Oauth2Client
-	for i := 0; i < len(appsOrigin); i++ {
-		x, _ = appsOrigin[i].ToOauth2Client()
-		apps = append(apps, x)
+	for i := 0; i < len(allAppsOrigin); i++ {
+		x, _ = allAppsOrigin[i].ToOauth2Client()
+		allapps = append(allapps, x)
+		if strings.HasPrefix(x.ID, u.StrID()+"-") {
+			apps = append(apps, x)
+		}
 	}
 	c.HTML(http.StatusOK, "user/index", nbgin.Data(c, gin.H{
-		"apps": apps,
+		"apps":    apps,
+		"allapps": allapps,
 	}))
 }
 
