@@ -1,19 +1,36 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 
+	oidc "github.com/coreos/go-oidc"
 	"golang.org/x/oauth2"
-	"gopkg.in/square/go-jose.v2/jwt"
 )
 
 const htmlIndex = `<html><body>
 <a href="/GoogleLogin">Log in with Google</a>
 </body></html>
 `
+
+// IDToken 4 OpenIDConnect
+type IDToken struct {
+	Issuer     string `json:"iss"`
+	UserID     string `json:"sub"`
+	ClientID   string `json:"aud"`
+	Expiration int64  `json:"exp"`
+	IssuedAt   int64  `json:"iat"`
+
+	Nonce string `json:"nonce,omitempty"` // Non-manditory fields MUST be "omitempty"
+
+	// Custom claims supported by this server.
+	// See: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+	Avatar string `json:"avatar,omitempty"`
+	Name   string `json:"name,omitempty"`
+}
 
 var endpotin = oauth2.Endpoint{
 	AuthURL:  "http://localhost:8080/oauth2/auth",
@@ -48,6 +65,16 @@ func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	provider, err := oidc.NewProvider(ctx, "http://localhost:8080")
+	if err != nil {
+		log.Fatal(err)
+	}
+	oidcConfig := &oidc.Config{
+		ClientID: googleOauthConfig.ClientID,
+	}
+	verifier := provider.Verifier(oidcConfig)
+
 	state := r.FormValue("state")
 	if state != oauthStateString {
 		fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateString, state)
@@ -55,35 +82,18 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	code := r.FormValue("code")
-	token, err := googleOauthConfig.Exchange(oauth2.NoContext, code)
+	token, err := googleOauthConfig.Exchange(ctx, code)
 	if err != nil {
-		fmt.Println("Code exchange failed with '%s'\n", err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
-	tok, err := jwt.ParseSigned(token.Extra("id_token").(string))
+	// jwt 验证
+	cl, err := verifier.Verify(ctx, token.Extra("id_token").(string))
 	if err != nil {
 		panic(err)
 	}
-
-	cl := jwt.Claims{}
-	if err := tok.Claims("4f5wg5l2hKsTeNem_V41fGnJm6gOdrj8ym3rFkEU_wT8RDtnSgFEZOQpHEgQ7JL38xUfU0Y3g6aYw9QT0hJ7mCpz9Er5qLaMXJwZxzHzAahlfA0icqabvJOMvQtzD6uQv6wPEyZtDTWiQi9AXwBpHssPnpYGIn20ZZuNlX2BrClciHhCPUIIZOQn_MmqTD31jSyjoQoV7MhhMTATKJx2XrHhR-1DcKJzQBSTAGnpYVaqpsARap-nwRipr3nUTuxyGohBTSmjJ2usSeQXHI3bODIRe1AuTyHceAbewn8b462yEWKARdpd9AjQW5SIVPfdsz5B6GlYQ5LdYKtznTuy7w", &cl); err != nil {
-		panic(err)
-	}
-
-	err = cl.Validate(jwt.Expected{
-		Issuer:  "issuer",
-		Subject: "subject",
-	})
-
-	if err != nil {
-		panic(err)
-	}
-
 	log.Println(cl)
-
-	return
 
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "http://localhost:8080/oauth2/info?code="+token.AccessToken, nil)

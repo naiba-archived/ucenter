@@ -61,6 +61,14 @@
   revision = "5f0f4b5ecad7f5259de033c2765c1e9399b23034"
 
 [[projects]]
+  digest = "1:f6e5e1bc64c2908167e6aa9a1fe0c084d515132a1c63ad5b6c84036aa06dc0c1"
+  name = "github.com/coreos/go-oidc"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "1180514eaf4d9f38d0d19eef639a1d695e066e72"
+  version = "v2.0.0"
+
+[[projects]]
   branch = "master"
   digest = "1:9faf36431bedc19ecedbfe05f7be01676b598647ca8aa34139e2fd510e61126e"
   name = "github.com/felipeweb/gopher-utils"
@@ -237,6 +245,17 @@
   version = "v1.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:bd9efe4e0b0f768302a1e2f0c22458149278de533e521206e5ddc71848c269a0"
+  name = "github.com/pquerna/cachecontrol"
+  packages = [
+    ".",
+    "cacheobject",
+  ]
+  pruneopts = "UT"
+  revision = "1555304b9b35fdd2b425bccf1a5613677705e7d0"
+
+[[projects]]
   digest = "1:03aa6e485e528acb119fb32901cf99582c380225fc7d5a02758e08b180cb56c3"
   name = "github.com/ugorji/go"
   packages = ["codec"]
@@ -354,6 +373,7 @@
     "github.com/casbin/casbin",
     "github.com/casbin/casbin/model",
     "github.com/casbin/gorm-adapter",
+    "github.com/coreos/go-oidc",
     "github.com/felipeweb/osin-mysql",
     "github.com/gin-gonic/gin",
     "github.com/gin-gonic/gin/binding",
@@ -365,6 +385,7 @@
     "github.com/mssola/user_agent",
     "github.com/naiba/com",
     "golang.org/x/crypto/bcrypt",
+    "golang.org/x/net/context",
     "golang.org/x/oauth2",
     "gopkg.in/go-playground/validator.v9",
     "gopkg.in/go-playground/validator.v9/translations/zh",
