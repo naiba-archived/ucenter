@@ -97,7 +97,10 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "http://localhost:8080/oauth2/info?code="+token.AccessToken, nil)
-	res, _ := client.Do(req)
+	res, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
 	defer res.Body.Close()
 	contents, err := ioutil.ReadAll(res.Body)
 	fmt.Fprintf(w, "Content: %s\n", contents)
