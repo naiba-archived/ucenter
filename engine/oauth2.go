@@ -177,6 +177,7 @@ func oauth2auth(c *gin.Context) {
 
 					if user.UserAuthorizeds[0].Permission["profile"] {
 						idToken.Name = user.Username
+						idToken.Bio = user.Bio
 						idToken.Avatar = url + "/upload/avatar/" + user.StrID()
 					}
 

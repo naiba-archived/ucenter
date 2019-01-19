@@ -25,6 +25,7 @@ type IDToken struct {
 	// See: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
 	Avatar string `json:"avatar,omitempty"`
 	Name   string `json:"name,omitempty"`
+	Bio    string `json:"bio,omitempty"`
 }
 
 // encodeIDToken serializes and signs an ID Token then adds a field to the token response.

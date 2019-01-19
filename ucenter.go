@@ -72,7 +72,8 @@ var (
 	ValidatorTrans ut.Translator
 	// Scopes 可以使用的 scope 列表
 	Scopes = map[string]string{
-		"openid": "获取用户基本信息",
+		"openid":  "获取必要信息(必选)",
+		"profile": "获取个人资料(用户名、简介等)",
 	}
 	// SystemRSAKey 系统RSA私钥
 	SystemRSAKey *rsa.PrivateKey
