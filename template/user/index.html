@@ -127,11 +127,11 @@
                   </div>
                   <div class="inline field">
                     <label>ID</label>
-                    <input name="id" readonly type="text" value="创建后显示">
+                    <input name="id" readonly type="text" placeholder="创建后显示">
                   </div>
                   <div class="inline field">
                     <label>密钥</label>
-                    <input name="secret" readonly type="text" value="创建后显示">
+                    <input name="secret" readonly type="text" placeholder="创建后显示">
                   </div>
                   <div class="ui error message"></div>
                   <div class="ui message">
@@ -204,7 +204,7 @@
     } else {
       Object.keys(inputs).forEach((k) => {
         const e = inputs[k]
-        e.val((e.attr('name') == 'secret' || e.attr('name') == 'id') ? '创建后显示' : "")
+        e.val('').blur()
       })
     }
     showModal('#editOauthApp')
