@@ -1,6 +1,6 @@
 auth_cookie_name: nb_uctoken
 dbdsn: root@tcp(127.0.0.1:3306)/ucenter?parseTime=True&loc=Asia%2FShanghai
-domain: 127.0.0.1:8080
+domain: localhost:8080
 web_protocol: http
 debug: true
 sysname: 聚力向前（北京）科技有限公司

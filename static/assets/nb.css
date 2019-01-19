@@ -6,10 +6,18 @@
     margin-right: auto !important;
   }
 }
+body{ 
+  display:flex !important; 
+  flex-direction:column !important; 
+}
 /* Additional style */
 .clear-shadow-and-border {
   border: none !important;
   box-shadow: none !important;
+}
+.full-height{
+  min-height: 100% !important;
+  margin-bottom: -55px !important;
 }
 .navbar {
   border-bottom: 1px solid #dddddd;
@@ -17,15 +25,9 @@
 }
 .navbar-bottom {
   border-top: 1px solid #e1e4e8 !important;
-  line-height: 50px;
-}
-.full-height {
-  min-height: 100% !important;
-  max-width: 100% !important;
-  margin-bottom: -120px !important;
-  margin-right: 0em !important;
-  margin-left: 0em !important;
-  margin-top: 0em !important;
+  padding-top: 15px;
+  padding-bottom: 20px;
+  margin-top:auto;
 }
 .login-form {
   max-width: 450px;
