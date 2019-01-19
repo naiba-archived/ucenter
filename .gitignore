@@ -1,5 +1,5 @@
 vendor
-/upload/avatar/*
+/data/upload/avatar/*
 !.gitkeep
 .DS_Store
 # ---> Go

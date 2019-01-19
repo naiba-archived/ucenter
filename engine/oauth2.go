@@ -309,7 +309,7 @@ func editOauth2App(c *gin.Context) {
 	// 储存头像
 	if len(errors) == 0 && f != nil {
 		f.Seek(0, 0)
-		out, err := os.Create("upload/avatar/" + client.ID)
+		out, err := os.Create("data/upload/avatar/" + client.ID)
 		if err != nil {
 			errors["editOauthAppForm.应用名"] = "服务器错误，头像储存"
 		} else {

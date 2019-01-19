@@ -81,7 +81,7 @@ func ServWeb() {
 	binding.Validator = new(nbgin.DefaultValidator)
 	r := gin.Default()
 	r.Static("static", "static")
-	r.Static("upload", "upload")
+	r.Static("upload", "data/upload")
 	r.SetFuncMap(template.FuncMap{
 		"df_allow": func(user *ucenter.User, perm string) bool {
 			return ucenter.RAM.Enforce(user.StrID(), ram.DefaultDomain, ram.DefaultProject, perm)
@@ -165,7 +165,7 @@ func ServWeb() {
 			"msg":   "没有这个请求方式哦",
 		})
 	})
-	r.Run(":8080")
+	r.Run("0.0.0.0:8080")
 }
 
 func genClientID(uid string) (id string, err error) {

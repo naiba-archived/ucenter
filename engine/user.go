@@ -135,7 +135,7 @@ func editProfileHandler(c *gin.Context) {
 	}
 	if f != nil {
 		f.Seek(0, 0)
-		out, err := os.Create("upload/avatar/" + u.StrID())
+		out, err := os.Create("data/upload/avatar/" + u.StrID())
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
