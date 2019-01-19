@@ -1,19 +1,16 @@
 {{define "page/auth"}} {{template "common/header" .}}
 <style type="text/css">
-  body>.grid {
-    height: 100%;
-  }
-
   .column {
     max-width: 450px;
   }
 </style>
-<div class="ui middle aligned center aligned grid">
+<div class="ui middle aligned center aligned grid full-height">
   <div class="column">
     <h2 class="ui image header">
-      <img src="https://images.gitee.com/uploads/enterprise_logo/5301244449.png{{.Client.Ext.Logo}}" class="image" />
-      <div class="content">即将登录到 聚力向前{{.Client.Ext.Name}}</div>
+      <img src="/upload/avatar/{{.data.Client.ID}}" class="image" />
+      <div class="content">即将登录到 {{.data.Client.Ext.Name}}</div>
     </h2>
+    <p>{{.data.Client.Ext.Desc}}</p>
     <form class="ui large form" method="POST">
       <div class="ui stacked segment left aligned">
         {{range $k,$v := .data.Check }}
