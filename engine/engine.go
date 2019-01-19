@@ -33,7 +33,7 @@ var (
 )
 
 func initOsinResource() {
-	db, err := sql.Open("mysql", ucenter.DBDSN)
+	db, err := sql.Open("mysql", ucenter.C.DBDSN)
 	if err != nil {
 		panic(err)
 	}

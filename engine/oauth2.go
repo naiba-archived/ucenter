@@ -25,7 +25,7 @@ import (
 )
 
 func appStatus(c *gin.Context) {
-	if !strings.Contains(c.Request.Referer(), "://"+ucenter.Domain+"/") {
+	if !strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain+"/") {
 		c.String(http.StatusForbidden, "CSRF Protection")
 		return
 	}
@@ -165,8 +165,9 @@ func oauth2auth(c *gin.Context) {
 				// 如果是 OpenIDConnect，特殊照顾
 				if user.UserAuthorizeds[0].Permission["openid"] {
 					now := time.Now()
+					url := ucenter.C.WebProtocol + "://" + ucenter.C.Domain
 					idToken := IDToken{
-						Issuer:     "http://localhost:8080",
+						Issuer:     url,
 						UserID:     user.StrID(),
 						ClientID:   ar.Client.GetId(),
 						Expiration: now.Add(time.Hour).Unix(),
@@ -176,7 +177,7 @@ func oauth2auth(c *gin.Context) {
 
 					if user.UserAuthorizeds[0].Permission["profile"] {
 						idToken.Name = user.Username
-						idToken.Avatar = "http://localhot:8080/upload/avatar/" + user.StrID()
+						idToken.Avatar = url + "/upload/avatar/" + user.StrID()
 					}
 
 					tmp, _ := json.Marshal(idToken)
@@ -341,7 +342,7 @@ func editOauth2App(c *gin.Context) {
 }
 
 func deleteOauth2App(c *gin.Context) {
-	if !strings.Contains(c.Request.Referer(), "://"+ucenter.Domain) {
+	if !strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain) {
 		c.String(http.StatusForbidden, "CSRF Protection")
 		return
 	}

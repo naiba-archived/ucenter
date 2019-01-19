@@ -39,7 +39,7 @@ func authorizeMiddleware(c *gin.Context) {
 	var authorizedUser *ucenter.User
 
 	// 1. 从 Cookie 认证
-	tk, err := c.Cookie(ucenter.AuthCookieName)
+	tk, err := c.Cookie(ucenter.C.AuthCookieName)
 	if err == nil {
 		var loginClient ucenter.Login
 		if ucenter.DB.Preload("User").Where("token = ?", tk).First(&loginClient).Error == nil {
@@ -73,7 +73,7 @@ func authorizeMiddleware(c *gin.Context) {
 
 	if authorizedUser != nil {
 		if authorizedUser.Status == ucenter.StatusSuspended {
-			nbgin.SetCookie(c, -1, ucenter.AuthCookieName, "")
+			nbgin.SetCookie(c, -1, ucenter.C.AuthCookieName, "")
 			c.HTML(http.StatusForbidden, "page/info", gin.H{
 				"icon":  "shield alternate",
 				"title": "禁止通行",

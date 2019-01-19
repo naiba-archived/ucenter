@@ -10,16 +10,17 @@ func Data(c *gin.Context, data map[string]interface{}) gin.H {
 	u, _ := c.Get(ucenter.AuthUser)
 	path := c.MustGet(ucenter.RequestRouter).(string)
 	return gin.H{
-		"title": ucenter.RouteTitle[path],
-		"user":  u,
-		"path":  path,
-		"data":  data,
+		"title":   ucenter.RouteTitle[path],
+		"user":    u,
+		"path":    path,
+		"sysname": ucenter.C.SysName,
+		"data":    data,
 	}
 }
 
 // SetCookie 设置Cookie
 func SetCookie(c *gin.Context, second int, k, v string) {
-	c.SetCookie(k, v, second, "/", ucenter.Domain, false, false)
+	c.SetCookie(k, v, second, "/", ucenter.C.Domain, false, false)
 }
 
 // SetNoCache 此页面不准缓存

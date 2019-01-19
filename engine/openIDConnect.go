@@ -7,6 +7,7 @@ import (
 
 	"github.com/RangelReale/osin"
 	"github.com/gin-gonic/gin"
+	"github.com/naiba/ucenter"
 	jose "gopkg.in/square/go-jose.v2"
 )
 
@@ -53,7 +54,7 @@ func encodeIDToken(resp *osin.Response, idToken IDToken, singer jose.Signer) {
 }
 
 func openIDConnectDiscovery(c *gin.Context) {
-	issuer := "http://localhost:8080"
+	issuer := ucenter.C.WebProtocol + "://" + ucenter.C.Domain
 	// For other example see: https://accounts.google.com/.well-known/openid-configuration
 	data := map[string]interface{}{
 		"issuer":                                issuer,

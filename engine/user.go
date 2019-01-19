@@ -46,7 +46,7 @@ func index(c *gin.Context) {
 }
 
 func userStatus(c *gin.Context) {
-	if !strings.Contains(c.Request.Referer(), "://"+ucenter.Domain+"/") {
+	if !strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain+"/") {
 		c.String(http.StatusForbidden, "CSRF Protection")
 		return
 	}
@@ -151,7 +151,7 @@ func editProfileHandler(c *gin.Context) {
 }
 
 func userDelete(c *gin.Context) {
-	if !strings.Contains(c.Request.Referer(), "://"+ucenter.Domain) {
+	if !strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain) {
 		c.String(http.StatusForbidden, "CSRF Protection")
 		return
 	}
@@ -188,15 +188,15 @@ func login(c *gin.Context) {
 }
 
 func logout(c *gin.Context) {
-	if !strings.Contains(c.Request.Referer(), "://"+ucenter.Domain) {
+	if !strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain) {
 		c.String(http.StatusForbidden, "CSRF Protection")
 		return
 	}
-	token, err := c.Cookie(ucenter.AuthCookieName)
+	token, err := c.Cookie(ucenter.C.AuthCookieName)
 	if err == nil {
 		ucenter.DB.Unscoped().Delete(ucenter.Login{}, "token = ?", token)
 	}
-	nbgin.SetCookie(c, -1, ucenter.AuthCookieName, "")
+	nbgin.SetCookie(c, -1, ucenter.C.AuthCookieName, "")
 	nbgin.SetNoCache(c)
 	if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
 		c.Redirect(http.StatusFound, returnURL)
@@ -256,7 +256,7 @@ func loginHandler(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	nbgin.SetCookie(c, 60*60*24*365*2, ucenter.AuthCookieName, loginClient.Token)
+	nbgin.SetCookie(c, 60*60*24*365*2, ucenter.C.AuthCookieName, loginClient.Token)
 	nbgin.SetNoCache(c)
 	if returnURL := c.Query("return_url"); strings.HasPrefix(returnURL, "/") {
 		c.Redirect(http.StatusFound, returnURL)
