@@ -214,7 +214,7 @@ func loginHandler(c *gin.Context) {
 	}
 
 	type loginForm struct {
-		ReCaptcha string `form:"g-recaptcha-response" cfn:"人机验证" binding:"required"`
+		ReCaptcha string `form:"g-recaptcha-response" cfn:"人机验证" binding:"required,min=10"`
 		Username  string `form:"username" cfn:"用户名" binding:"required,min=1,max=20"`
 		Password  string `form:"password" cfn:"密码" binding:"required,min=6,max=32"`
 	}
@@ -295,7 +295,7 @@ func signupHandler(c *gin.Context) {
 	}
 
 	type signUpForm struct {
-		ReCaptcha  string `form:"g-recaptcha-response" cfn:"人机验证" binding:"required"`
+		ReCaptcha  string `form:"g-recaptcha-response" cfn:"人机验证" binding:"required,min=10"`
 		Username   string `form:"username" cfn:"用户名" binding:"required,min=1,max=20,alphanum"`
 		Password   string `form:"password" cfn:"密码" binding:"required,min=6,max=32,eqfield=Password"`
 		RePassword string `form:"repassword" cfn:"确认密码" binding:"required,min=6,max=32"`
