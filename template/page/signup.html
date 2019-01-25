@@ -6,15 +6,15 @@
       <img src="/static/assets/favicon.png" class="image" />
       <div class="content">用户注册</div>
     </h2>
-    <form class="ui large form{{if or .data.errors}} error{{ end }}" method="POST">
+    <form class="ui large form{{if .data.errors}} error{{ end }}" method="POST">
       <div class="ui stacked segment">
-        <div class="field{{if index .data.errors "signUpForm.用户名"}} error{{ end }}">
+        <div class="field{{if .data.errors}}{{if index .data.errors "signUpForm.用户名"}} error{{ end }}{{ end }}">
           <div class="ui left icon input">
             <i class="user icon"></i>
             <input type="text" name="username" autocomplete="username" placeholder="用户名" />
           </div>
         </div>
-        <div class="field{{if index .data.errors "signUpForm.密码"}} error{{ end }}">
+        <div class="field{{if .data.errors}}{{if index .data.errors "signUpForm.密码"}} error{{ end }}{{ end }}">
           <div class="ui left icon input">
             <i class="lock icon"></i>
             <input type="password" name="password" autocomplete="new-password" placeholder="密码" />
@@ -26,7 +26,7 @@
             <input type="password" name="repassword" autocomplete="new-password" placeholder="确认密码" />
           </div>
         </div>
-        <div class="field{{if index .data.errors "signUpForm.人机验证"}} error{{ end }}">
+        <div class="field{{if .data.errors}}{{if index .data.errors "signUpForm.人机验证"}} error{{ end }}{{ end }}">
           <div class="g-recaptcha" data-sitekey="6Lf1o4wUAAAAACxndMJn--Nghjw0jMWm8JLEKjbF"></div>
         </div>
         <div class="ui fluid large submit button">注册</div>
