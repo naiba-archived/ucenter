@@ -20,6 +20,9 @@
             <input type="password" name="password" autocomplete="current-password" placeholder="密码" />
           </div>
         </div>
+        <div class="field center aligned">
+          <div class="g-recaptcha" data-sitekey="6Lf1o4wUAAAAACxndMJn--Nghjw0jMWm8JLEKjbF"></div>
+        </div>
         <div class="ui fluid large submit button">登录</div>
       </div>
 
@@ -82,5 +85,6 @@
     });
   });
 </script>
+<script src='https://www.google.com/recaptcha/api.js'></script>
 {{template "common/footer" .}}
 {{ end }}

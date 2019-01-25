@@ -214,8 +214,9 @@ func loginHandler(c *gin.Context) {
 	}
 
 	type loginForm struct {
-		Username string `form:"username" cfn:"用户名" binding:"required,min=1,max=20"`
-		Password string `form:"password" cfn:"密码" binding:"required,min=6,max=32"`
+		ReCaptcha string `form:"g-recaptcha-response" cfn:"人机验证" binding:"required"`
+		Username  string `form:"username" cfn:"用户名" binding:"required,min=1,max=20"`
+		Password  string `form:"password" cfn:"密码" binding:"required,min=6,max=32"`
 	}
 	var lf loginForm
 	var u ucenter.User
@@ -231,6 +232,10 @@ func loginHandler(c *gin.Context) {
 	} else if bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(lf.Password)) != nil {
 		errors = map[string]string{
 			"loginForm.密码": "密码不正确",
+		}
+	} else if ok, _ := recaptcha.Verify(ucenter.C.ReCaptchaSecret, lf.ReCaptcha, c.ClientIP()); !ok {
+		errors = map[string]string{
+			"loginForm.用户名": "人机验证未通过",
 		}
 	}
 
