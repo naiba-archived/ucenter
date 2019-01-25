@@ -241,11 +241,7 @@ func loginHandler(c *gin.Context) {
 
 	if errors != nil {
 		c.HTML(http.StatusOK, "page/login", nbgin.Data(c, gin.H{
-			"errors": map[string]interface{}{
-				"Username":  errors["loginForm.用户名"],
-				"Password":  errors["loginForm.密码"],
-				"ReCaptcha": errors["loginForm.人机验证"],
-			},
+			"errors": errors,
 		}))
 		return
 	}
@@ -316,12 +312,7 @@ func signupHandler(c *gin.Context) {
 	}
 	if errors != nil {
 		c.HTML(http.StatusOK, "page/signup", nbgin.Data(c, gin.H{
-			"errors": map[string]interface{}{
-				"Username":   errors["signUpForm.用户名"],
-				"Password":   errors["signUpForm.密码"],
-				"RePassword": errors["signUpForm.确认密码"],
-				"ReCaptcha":  errors["signUpForm.人机验证"],
-			},
+			"errors": errors,
 		}))
 		return
 	}
