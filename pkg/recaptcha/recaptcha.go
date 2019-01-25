@@ -14,6 +14,9 @@ type recaptchaResp struct {
 
 //Verify 验证验证码
 func Verify(secret, gresp, ip string) (flag bool, host string) {
+	if len(gresp) < 10 {
+		return false, ""
+	}
 	resp, err := http.Post("https://www.recaptcha.net/recaptcha/api/siteverify",
 		"application/x-www-form-urlencoded",
 		strings.NewReader("secret="+secret+"&response="+gresp+"&remoteip="+ip))
