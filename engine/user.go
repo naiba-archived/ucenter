@@ -235,15 +235,16 @@ func loginHandler(c *gin.Context) {
 		}
 	} else if ok, _ := recaptcha.Verify(ucenter.C.ReCaptchaSecret, lf.ReCaptcha, c.ClientIP()); !ok {
 		errors = map[string]string{
-			"loginForm.用户名": "人机验证未通过",
+			"loginForm.人机验证": "人机验证未通过",
 		}
 	}
 
 	if errors != nil {
 		c.HTML(http.StatusOK, "page/login", nbgin.Data(c, gin.H{
 			"errors": map[string]interface{}{
-				"Username": errors["loginForm.用户名"],
-				"Password": errors["loginForm.密码"],
+				"Username":  errors["loginForm.用户名"],
+				"Password":  errors["loginForm.密码"],
+				"ReCaptcha": errors["loginForm.人机验证"],
 			},
 		}))
 		return
@@ -310,7 +311,7 @@ func signupHandler(c *gin.Context) {
 		}
 	} else if ok, _ := recaptcha.Verify(ucenter.C.ReCaptchaSecret, suf.ReCaptcha, c.ClientIP()); !ok {
 		errors = map[string]string{
-			"signUpForm.用户名": "人机验证未通过",
+			"signUpForm.人机验证": "人机验证未通过",
 		}
 	}
 	if errors != nil {
@@ -319,6 +320,7 @@ func signupHandler(c *gin.Context) {
 				"Username":   errors["signUpForm.用户名"],
 				"Password":   errors["signUpForm.密码"],
 				"RePassword": errors["signUpForm.确认密码"],
+				"ReCaptcha":  errors["signUpForm.人机验证"],
 			},
 		}))
 		return
