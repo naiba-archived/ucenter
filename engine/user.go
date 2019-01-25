@@ -19,6 +19,7 @@ import (
 	"github.com/naiba/ucenter"
 	"github.com/naiba/ucenter/pkg/nbgin"
 	"github.com/naiba/ucenter/pkg/ram"
+	"github.com/naiba/ucenter/pkg/recaptcha"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -288,6 +289,7 @@ func signupHandler(c *gin.Context) {
 	}
 
 	type signUpForm struct {
+		ReCaptcha  string `form:"g-recaptcha-response" cfn:"人机验证" binding:"required"`
 		Username   string `form:"username" cfn:"用户名" binding:"required,min=1,max=20,alphanum"`
 		Password   string `form:"password" cfn:"密码" binding:"required,min=6,max=32,eqfield=Password"`
 		RePassword string `form:"repassword" cfn:"确认密码" binding:"required,min=6,max=32"`
@@ -300,6 +302,10 @@ func signupHandler(c *gin.Context) {
 	} else if err = ucenter.DB.Where("username = ?", suf.Username).First(&u).Error; err != gorm.ErrRecordNotFound {
 		errors = map[string]string{
 			"signUpForm.用户名": "用户名已存在",
+		}
+	} else if ok, _ := recaptcha.Verify(ucenter.C.ReCaptchaSecret, suf.ReCaptcha, c.ClientIP()); !ok {
+		errors = map[string]string{
+			"signUpForm.用户名": "人机验证未通过",
 		}
 	}
 	if errors != nil {
