@@ -16,6 +16,7 @@ import (
 func anonymousMustLogin(c *gin.Context) {
 	_, ok := c.Get(ucenter.AuthUser)
 	if !ok {
+		nbgin.SetNoCache(c)
 		c.Redirect(http.StatusTemporaryRedirect, "/login?return_url="+url.QueryEscape(c.Request.RequestURI))
 		c.Abort()
 	}
