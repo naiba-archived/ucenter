@@ -59,7 +59,27 @@ func (s *baseSessionTable) toRequest(session fosite.Session, cm fosite.ClientMan
 	return r, nil
 }
 
-// OpenIDSession OpenID授权表
-type OpenIDSession struct {
+// FositeOidc oidc
+type FositeOidc struct {
+	*baseSessionTable
+}
+
+// FositeAccess access
+type FositeAccess struct {
+	*baseSessionTable
+}
+
+// FositeCode code
+type FositeCode struct {
+	*baseSessionTable
+}
+
+// FositePkce pkce
+type FositePkce struct {
+	*baseSessionTable
+}
+
+// FositeRefresh refresh
+type FositeRefresh struct {
 	*baseSessionTable
 }

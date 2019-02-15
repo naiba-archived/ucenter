@@ -7,6 +7,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/naiba/ucenter"
+
 	"github.com/lib/pq"
 
 	"github.com/jinzhu/gorm"
@@ -15,8 +19,11 @@ import (
 )
 
 const (
-	sqlTableOpenID = "openID"
-	sqlTableCode   = "code"
+	sqlTableOpenID = iota
+	sqlTableAccess
+	sqlTableRefresh
+	sqlTableCode
+	sqlTablePKCE
 )
 
 // FositeStore Fosite 的 Postgres 储存
@@ -25,8 +32,16 @@ type FositeStore struct {
 	HashSignature bool
 }
 
-func (s *FositeStore) hashSignature(signature, table string) string {
-	if table == "accessToken" && s.HashSignature {
+// NewFositeStore new store
+func NewFositeStore(db *gorm.DB, hashSignature bool) *FositeStore {
+	return &FositeStore{
+		db:            db,
+		HashSignature: hashSignature,
+	}
+}
+
+func (s *FositeStore) hashSignature(signature string, table int) string {
+	if table == sqlTableAccess && s.HashSignature {
 		return fmt.Sprintf("%x", sha512.Sum384([]byte(signature)))
 	}
 	return signature
@@ -70,7 +85,7 @@ func sqlDataFromRequest(signature string, r fosite.Requester) (baseSessionTable,
 	}, nil
 }
 
-func (s *FositeStore) createSession(table, signature string, req fosite.Requester) error {
+func (s *FositeStore) createSession(table int, signature string, req fosite.Requester) error {
 	var data interface{}
 	signature = s.hashSignature(signature, table)
 	base, err := sqlDataFromRequest(signature, req)
@@ -79,18 +94,18 @@ func (s *FositeStore) createSession(table, signature string, req fosite.Requeste
 	}
 	switch table {
 	case sqlTableOpenID:
-		data = &OpenIDSession{&base}
+		data = &FositeOidc{&base}
 	}
 	return s.db.Save(&data).Error
 }
 
-func (s *FositeStore) findSessionBySignature(signature string, session fosite.Session, table string) (fosite.Requester, error) {
+func (s *FositeStore) findSessionBySignature(signature string, session fosite.Session, table int) (fosite.Requester, error) {
 	signature = s.hashSignature(signature, table)
 
 	var d interface{}
 	switch table {
 	case sqlTableOpenID:
-		d = &OpenIDSession{}
+		d = &FositeOidc{}
 	}
 	if err := s.db.Where("signature = ?", signature).First(d).Error; err == gorm.ErrRecordNotFound {
 		return nil, errors.Wrap(fosite.ErrNotFound, "")
@@ -109,13 +124,13 @@ func (s *FositeStore) findSessionBySignature(signature string, session fosite.Se
 	return d.(*baseSessionTable).toRequest(session, s)
 }
 
-func (s *FositeStore) deleteSession(signature string, table string) error {
+func (s *FositeStore) deleteSession(signature string, table int) error {
 	signature = s.hashSignature(signature, table)
 
 	var err error
 	switch table {
 	case sqlTableOpenID:
-		err = s.db.Delete(&OpenIDSession{}, "signature = ?", signature).Error
+		err = s.db.Delete(&FositeOidc{}, "signature = ?", signature).Error
 	}
 
 	return err
@@ -147,121 +162,111 @@ func (s *FositeStore) GetClient(_ context.Context, id string) (fosite.Client, er
 	return &c, nil
 }
 
-func (s *FositeStore) CreateAuthorizeCodeSession(_ context.Context, code string, req fosite.Requester) error {
-	s.AuthorizeCodes[code] = StoreAuthorizeCode{active: true, Requester: req}
-	return nil
+// CreateAuthorizeCodeSession -
+func (s *FositeStore) CreateAuthorizeCodeSession(_ context.Context, signature string, req fosite.Requester) error {
+	return s.createSession(sqlTableAccess, signature, req)
 }
 
-func (s *FositeStore) GetAuthorizeCodeSession(_ context.Context, code string, _ fosite.Session) (fosite.Requester, error) {
-	rel, ok := s.AuthorizeCodes[code]
-	if !ok {
-		return nil, fosite.ErrNotFound
-	}
-	if !rel.active {
-		return rel, fosite.ErrInvalidatedAuthorizeCode
-	}
-
-	return rel.Requester, nil
+// GetAuthorizeCodeSession -
+func (s *FositeStore) GetAuthorizeCodeSession(_ context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
+	return s.findSessionBySignature(signature, session, sqlTableCode)
 }
 
-func (s *FositeStore) InvalidateAuthorizeCodeSession(ctx context.Context, code string) error {
-	rel, ok := s.AuthorizeCodes[code]
-	if !ok {
-		return fosite.ErrNotFound
-	}
-	rel.active = false
-	s.AuthorizeCodes[code] = rel
-	return nil
+// InvalidateAuthorizeCodeSession 失效accessCode
+func (s *FositeStore) InvalidateAuthorizeCodeSession(_ context.Context, signature string) error {
+	return s.db.Model(FositeCode{}).Where("signature=?", signature).Update("active", false).Error
 }
 
-func (s *FositeStore) DeleteAuthorizeCodeSession(_ context.Context, code string) error {
-	delete(s.AuthorizeCodes, code)
-	return nil
+// DeleteAuthorizeCodeSession -
+func (s *FositeStore) DeleteAuthorizeCodeSession(_ context.Context, signature string) error {
+	return s.db.Delete(FositeCode{}, "signature=?", signature).Error
 }
 
-func (s *FositeStore) CreatePKCERequestSession(_ context.Context, code string, req fosite.Requester) error {
-	s.PKCES[code] = req
-	return nil
+// CreatePKCERequestSession -
+func (s *FositeStore) CreatePKCERequestSession(_ context.Context, signature string, req fosite.Requester) error {
+	return s.createSession(sqlTablePKCE, signature, req)
 }
 
-func (s *FositeStore) GetPKCERequestSession(_ context.Context, code string, _ fosite.Session) (fosite.Requester, error) {
-	rel, ok := s.PKCES[code]
-	if !ok {
-		return nil, fosite.ErrNotFound
-	}
-	return rel, nil
+// GetPKCERequestSession -
+func (s *FositeStore) GetPKCERequestSession(_ context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
+	return s.findSessionBySignature(signature, session, sqlTablePKCE)
 }
 
-func (s *FositeStore) DeletePKCERequestSession(_ context.Context, code string) error {
-	delete(s.PKCES, code)
-	return nil
+// DeletePKCERequestSession -
+func (s *FositeStore) DeletePKCERequestSession(_ context.Context, signature string) error {
+	return s.db.Delete(FositePkce{}, "signature=?", signature).Error
 }
 
+// CreateAccessTokenSession 创建授权码
 func (s *FositeStore) CreateAccessTokenSession(_ context.Context, signature string, req fosite.Requester) error {
-	s.AccessTokens[signature] = req
-	s.AccessTokenRequestIDs[req.GetID()] = signature
-	return nil
+	return s.createSession(sqlTableAccess, signature, req)
 }
 
-func (s *FositeStore) GetAccessTokenSession(_ context.Context, signature string, _ fosite.Session) (fosite.Requester, error) {
-	rel, ok := s.AccessTokens[signature]
-	if !ok {
-		return nil, fosite.ErrNotFound
-	}
-	return rel, nil
+// GetAccessTokenSession 获取授权码
+func (s *FositeStore) GetAccessTokenSession(_ context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
+	return s.findSessionBySignature(signature, session, sqlTableAccess)
 }
 
+// DeleteAccessTokenSession 删除授权码
 func (s *FositeStore) DeleteAccessTokenSession(_ context.Context, signature string) error {
-	delete(s.AccessTokens, signature)
-	return nil
+	return s.db.Delete(FositeAccess{}, "signature=?", signature).Error
 }
 
+// CreateRefreshTokenSession 创建更新令牌
 func (s *FositeStore) CreateRefreshTokenSession(_ context.Context, signature string, req fosite.Requester) error {
-	s.RefreshTokens[signature] = req
-	s.RefreshTokenRequestIDs[req.GetID()] = signature
-	return nil
+	return s.createSession(sqlTableRefresh, signature, req)
 }
 
-func (s *FositeStore) GetRefreshTokenSession(_ context.Context, signature string, _ fosite.Session) (fosite.Requester, error) {
-	rel, ok := s.RefreshTokens[signature]
-	if !ok {
-		return nil, fosite.ErrNotFound
-	}
-	return rel, nil
+// GetRefreshTokenSession 获取更新令牌
+func (s *FositeStore) GetRefreshTokenSession(_ context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
+	return s.findSessionBySignature(signature, session, sqlTableRefresh)
 }
 
+// DeleteRefreshTokenSession 删除更新令牌
 func (s *FositeStore) DeleteRefreshTokenSession(_ context.Context, signature string) error {
-	delete(s.RefreshTokens, signature)
-	return nil
+	return s.db.Delete(FositeRefresh{}, "signature=?", signature).Error
 }
 
-func (s *FositeStore) CreateImplicitAccessTokenSession(_ context.Context, code string, req fosite.Requester) error {
-	s.Implicit[code] = req
-	return nil
+// CreateImplicitAccessTokenSession 创建简化授权
+func (s *FositeStore) CreateImplicitAccessTokenSession(ctx context.Context, signature string, req fosite.Requester) error {
+	return s.CreateAccessTokenSession(ctx, signature, req)
 }
 
-func (s *FositeStore) Authenticate(_ context.Context, name string, secret string) error {
-	rel, ok := s.Users[name]
-	if !ok {
+// Authenticate 用户认证
+func (s *FositeStore) Authenticate(_ context.Context, id string, secret string) error {
+	var u ucenter.User
+	if err := s.db.First(&u, "id = ?", id).Error; err == gorm.ErrRecordNotFound {
 		return fosite.ErrNotFound
-	}
-	if rel.Password != secret {
+	} else if err != nil {
+		return fosite.ErrServerError
+	} else if bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(secret)) != nil {
 		return errors.New("Invalid credentials")
 	}
 	return nil
 }
 
+// RevokeRefreshToken 置刷新令牌失效
 func (s *FositeStore) RevokeRefreshToken(ctx context.Context, requestID string) error {
-	if signature, exists := s.RefreshTokenRequestIDs[requestID]; exists {
-		s.DeleteRefreshTokenSession(ctx, signature)
-		s.DeleteAccessTokenSession(ctx, signature)
+	var d FositeRefresh
+
+	if err := s.db.First(&d, "request_id=?", requestID).Error; err == gorm.ErrRecordNotFound {
+		return fosite.ErrNotFound
+	} else if err != nil {
+		return fosite.ErrServerError
 	}
+	s.DeleteRefreshTokenSession(ctx, d.Signature)
+	s.DeleteAccessTokenSession(ctx, d.Signature)
 	return nil
 }
 
+// RevokeAccessToken 删除授权码
 func (s *FositeStore) RevokeAccessToken(ctx context.Context, requestID string) error {
-	if signature, exists := s.AccessTokenRequestIDs[requestID]; exists {
-		s.DeleteAccessTokenSession(ctx, signature)
+	var d FositeAccess
+	if err := s.db.First(&d, "request_id=?", requestID).Error; err == gorm.ErrRecordNotFound {
+		return fosite.ErrNotFound
+	} else if err != nil {
+		return fosite.ErrServerError
 	}
+	s.DeleteAccessTokenSession(ctx, d.Signature)
 	return nil
 }
