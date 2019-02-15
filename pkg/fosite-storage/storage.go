@@ -2,8 +2,10 @@ package storage
 
 import (
 	"context"
+	"crypto/sha512"
 	"database/sql"
-	"time"
+	"encoding/json"
+	"fmt"
 
 	"github.com/lib/pq"
 
@@ -12,106 +14,130 @@ import (
 	"github.com/pkg/errors"
 )
 
-type baseSessionTable struct {
-	PK                int
-	Signature         string
-	RequestID         string
-	ConsentChallenge  sql.NullString
-	RequestedAt       time.Time
-	ClientID          string
-	Scopes            pq.StringArray
-	GrantedScope      pq.StringArray
-	RequestedAudience pq.StringArray
-	GrantedAudience   pq.StringArray
-	Form              string
-	Subject           string
-	Active            bool
-	Session           []byte
-}
+const (
+	sqlTableOpenID = "openID"
+	sqlTableCode   = "code"
+)
 
-type MemoryUserRelation struct {
-	Username string
-	Password string
-}
-
+// FositeStore Fosite 的 Postgres 储存
 type FositeStore struct {
-	db             *gorm.DB
-	Clients        map[string]fosite.Client
-	AuthorizeCodes map[string]StoreAuthorizeCode
-	IDSessions     map[string]fosite.Requester
-	AccessTokens   map[string]fosite.Requester
-	Implicit       map[string]fosite.Requester
-	RefreshTokens  map[string]fosite.Requester
-	PKCES          map[string]fosite.Requester
-	Users          map[string]MemoryUserRelation
-	// In-memory request ID to token signatures
-	AccessTokenRequestIDs  map[string]string
-	RefreshTokenRequestIDs map[string]string
+	db            *gorm.DB
+	HashSignature bool
 }
 
-type StoreAuthorizeCode struct {
-	active bool
-	fosite.Requester
-}
-
-func NewExampleStore() *FositeStore {
-	return &FositeStore{
-		IDSessions: make(map[string]fosite.Requester),
-		Clients: map[string]fosite.Client{
-			"my-client": &fosite.DefaultClient{
-				ID:            "my-client",
-				Secret:        []byte(`$2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO`), // = "foobar"
-				RedirectURIs:  []string{"http://localhost:3846/callback"},
-				ResponseTypes: []string{"id_token", "code", "token"},
-				GrantTypes:    []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"},
-				Scopes:        []string{"fosite", "openid", "photos", "offline"},
-			},
-			"encoded:client": &fosite.DefaultClient{
-				ID:            "encoded:client",
-				Secret:        []byte(`$2a$10$A7M8b65dSSKGHF0H2sNkn.9Z0hT8U1Nv6OWPV3teUUaczXkVkxuDS`), // = "encoded&password"
-				RedirectURIs:  []string{"http://localhost:3846/callback"},
-				ResponseTypes: []string{"id_token", "code", "token"},
-				GrantTypes:    []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"},
-				Scopes:        []string{"fosite", "openid", "photos", "offline"},
-			},
-		},
-		Users: map[string]MemoryUserRelation{
-			"peter": {
-				// This store simply checks for equality, a real storage implementation would obviously use
-				// a hashing algorithm for encrypting the user password.
-				Username: "peter",
-				Password: "secret",
-			},
-		},
-		AuthorizeCodes:         map[string]StoreAuthorizeCode{},
-		Implicit:               map[string]fosite.Requester{},
-		AccessTokens:           map[string]fosite.Requester{},
-		RefreshTokens:          map[string]fosite.Requester{},
-		PKCES:                  map[string]fosite.Requester{},
-		AccessTokenRequestIDs:  map[string]string{},
-		RefreshTokenRequestIDs: map[string]string{},
+func (s *FositeStore) hashSignature(signature, table string) string {
+	if table == "accessToken" && s.HashSignature {
+		return fmt.Sprintf("%x", sha512.Sum384([]byte(signature)))
 	}
+	return signature
 }
 
-func (s *FositeStore) CreateOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) error {
-	s.IDSessions[authorizeCode] = requester
-	return nil
-}
-
-func (s *FositeStore) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
-	cl, ok := s.IDSessions[authorizeCode]
-	if !ok {
-		return nil, fosite.ErrNotFound
+func sqlDataFromRequest(signature string, r fosite.Requester) (baseSessionTable, error) {
+	subject := ""
+	if r.GetSession() != nil {
+		subject = r.GetSession().GetSubject()
 	}
-	return cl, nil
+
+	session, err := json.Marshal(r.GetSession())
+	if err != nil {
+		return baseSessionTable{}, errors.WithStack(err)
+	}
+
+	var challenge sql.NullString
+	rr, ok := r.GetSession().(*Session)
+	if !ok && r.GetSession() != nil {
+		return baseSessionTable{}, errors.Errorf("Expected request to be of type *Session, but got: %T", r.GetSession())
+	} else if ok {
+		if len(rr.ConsentChallenge) > 0 {
+			challenge = sql.NullString{Valid: true, String: rr.ConsentChallenge}
+		}
+	}
+
+	return baseSessionTable{
+		RequestID:         r.GetID(),
+		ConsentChallenge:  challenge,
+		Signature:         signature,
+		RequestedAt:       r.GetRequestedAt(),
+		ClientID:          r.GetClient().GetID(),
+		Scopes:            pq.StringArray(r.GetRequestedScopes()),
+		GrantedScope:      pq.StringArray(r.GetGrantedScopes()),
+		GrantedAudience:   pq.StringArray(r.GetGrantedAudience()),
+		RequestedAudience: pq.StringArray(r.GetRequestedAudience()),
+		Form:              r.GetRequestForm().Encode(),
+		Session:           session,
+		Subject:           subject,
+		Active:            true,
+	}, nil
 }
 
-func (s *FositeStore) DeleteOpenIDConnectSession(_ context.Context, authorizeCode string) error {
-	delete(s.IDSessions, authorizeCode)
-	return nil
+func (s *FositeStore) createSession(table, signature string, req fosite.Requester) error {
+	var data interface{}
+	signature = s.hashSignature(signature, table)
+	base, err := sqlDataFromRequest(signature, req)
+	if err != nil {
+		return err
+	}
+	switch table {
+	case sqlTableOpenID:
+		data = &OpenIDSession{&base}
+	}
+	return s.db.Save(&data).Error
+}
+
+func (s *FositeStore) findSessionBySignature(signature string, session fosite.Session, table string) (fosite.Requester, error) {
+	signature = s.hashSignature(signature, table)
+
+	var d interface{}
+	switch table {
+	case sqlTableOpenID:
+		d = &OpenIDSession{}
+	}
+	if err := s.db.Where("signature = ?", signature).First(d).Error; err == gorm.ErrRecordNotFound {
+		return nil, errors.Wrap(fosite.ErrNotFound, "")
+	} else if err != nil {
+		return nil, err
+	} else if !d.(*baseSessionTable).Active && table == sqlTableCode {
+		if r, err := d.(*baseSessionTable).toRequest(session, s); err != nil {
+			return nil, err
+		} else {
+			return r, errors.WithStack(fosite.ErrInvalidatedAuthorizeCode)
+		}
+	} else if !d.(*baseSessionTable).Active {
+		return nil, errors.WithStack(fosite.ErrInactiveToken)
+	}
+
+	return d.(*baseSessionTable).toRequest(session, s)
+}
+
+func (s *FositeStore) deleteSession(signature string, table string) error {
+	signature = s.hashSignature(signature, table)
+
+	var err error
+	switch table {
+	case sqlTableOpenID:
+		err = s.db.Delete(&OpenIDSession{}, "signature = ?", signature).Error
+	}
+
+	return err
+}
+
+// CreateOpenIDConnectSession 创建 OpenID 认证
+func (s *FositeStore) CreateOpenIDConnectSession(_ context.Context, signature string, req fosite.Requester) error {
+	return s.createSession(sqlTableOpenID, signature, req)
+}
+
+// GetOpenIDConnectSession 获取 OpenID 认证
+func (s *FositeStore) GetOpenIDConnectSession(_ context.Context, signature string, req fosite.Requester) (fosite.Requester, error) {
+	return s.findSessionBySignature(signature, req.GetSession(), sqlTableOpenID)
+}
+
+// DeleteOpenIDConnectSession 删除 OpenID 认证
+func (s *FositeStore) DeleteOpenIDConnectSession(_ context.Context, signature string) error {
+	return s.deleteSession(signature, sqlTableOpenID)
 }
 
 func (s *FositeStore) GetClient(_ context.Context, id string) (fosite.Client, error) {
+
 	cl, ok := s.Clients[id]
 	if !ok {
 		return nil, fosite.ErrNotFound

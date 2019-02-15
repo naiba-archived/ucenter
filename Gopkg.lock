@@ -304,9 +304,16 @@
   revision = "927647a4f54e5db5a040fb97799fca9ed9d0bcd3"
 
 [[projects]]
-  digest = "1:da5339a44d93360707e24c96b429f833015ac5d2aaf3bb2a531fb4bd365a3279"
+  digest = "1:771099d049c0196632ef3beac770c8282edc3bb3ddee25d675bc36341e410d33"
   name = "github.com/ory/fosite"
-  packages = ["."]
+  packages = [
+    ".",
+    "handler/oauth2",
+    "handler/openid",
+    "storage",
+    "token/hmac",
+    "token/jwt",
+  ]
   pruneopts = "UT"
   revision = "2f58f9e0ea1a197c8b7eb62dc545d9467ed2ff10"
   version = "v0.29.0"
@@ -541,9 +548,13 @@
     "github.com/go-playground/universal-translator",
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/mysql",
+    "github.com/lib/pq",
+    "github.com/mohae/deepcopy",
     "github.com/mssola/user_agent",
     "github.com/naiba/com",
     "github.com/ory/fosite",
+    "github.com/ory/fosite/handler/openid",
+    "github.com/ory/fosite/token/jwt",
     "github.com/pkg/errors",
     "github.com/spf13/viper",
     "golang.org/x/crypto/bcrypt",
