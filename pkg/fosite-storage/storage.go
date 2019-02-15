@@ -112,11 +112,11 @@ func (s *FositeStore) findSessionBySignature(signature string, session fosite.Se
 	} else if err != nil {
 		return nil, err
 	} else if !d.(*baseSessionTable).Active && table == sqlTableCode {
-		if r, err := d.(*baseSessionTable).toRequest(session, s); err != nil {
+		var r fosite.Requester
+		if r, err = d.(*baseSessionTable).toRequest(session, s); err != nil {
 			return nil, err
-		} else {
-			return r, errors.WithStack(fosite.ErrInvalidatedAuthorizeCode)
 		}
+		return r, errors.WithStack(fosite.ErrInvalidatedAuthorizeCode)
 	} else if !d.(*baseSessionTable).Active {
 		return nil, errors.WithStack(fosite.ErrInactiveToken)
 	}

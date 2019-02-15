@@ -117,7 +117,7 @@ type Client struct {
 	// (which jwks_uri does, as described in Section 10 of OpenID Connect Core 1.0 [OpenID.Core]). The jwks_uri and jwks
 	// parameters MUST NOT be used together.
 	JSONWebKeys    *jose.JSONWebKeySet `gorm:"-" json:"jwks,omitempty"`
-	rawJSONWebKeys string              `json:"-"`
+	rawJSONWebKeys string
 
 	// Requested Client Authentication method for the Token Endpoint. The options are client_secret_post,
 	// client_secret_basic, private_key_jwt, and none.
