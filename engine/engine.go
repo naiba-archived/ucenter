@@ -1,77 +1,27 @@
 package engine
 
 import (
-	"database/sql"
 	"errors"
 	"html/template"
-	"log"
 	"net/http"
 	"strings"
 
-	"github.com/naiba/com"
-
-	"github.com/naiba/ucenter/pkg/ram"
-
-	"github.com/RangelReale/osin"
-	"github.com/felipeweb/osin-mysql"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/naiba/com"
 	"github.com/naiba/ucenter"
 	"github.com/naiba/ucenter/pkg/nbgin"
+	"github.com/naiba/ucenter/pkg/ram"
 
 	// MySQL Driver
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-
-	"gopkg.in/square/go-jose.v2"
-)
-
-var (
-	osinStore        *mysql.Storage
-	osinServer       *osin.Server
-	openIDPublicKeys *jose.JSONWebKeySet
-	jwtSigner        jose.Signer
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 func initOsinResource() {
-	db, err := sql.Open("mysql", ucenter.C.DBDSN)
+	db, err := gorm.Open("postgres", ucenter.C.DBDSN)
 	if err != nil {
 		panic(err)
-	}
-	osinStore = mysql.New(db, "osin_")
-	err = osinStore.CreateSchemas()
-	if err != nil {
-		panic(err)
-	}
-	sconfig := osin.NewServerConfig()
-	sconfig.AllowedAuthorizeTypes = osin.AllowedAuthorizeType{osin.CODE, osin.TOKEN}
-	sconfig.AllowedAccessTypes = osin.AllowedAccessType{osin.AUTHORIZATION_CODE,
-		osin.REFRESH_TOKEN, osin.PASSWORD, osin.CLIENT_CREDENTIALS, osin.ASSERTION}
-	sconfig.AllowGetAccessRequest = true
-	sconfig.AllowClientSecretInParams = true
-	osinServer = osin.NewServer(sconfig, osinStore)
-
-	// Configure jwtSigner and public keys.
-	privateKey := &jose.JSONWebKey{
-		Key:       ucenter.SystemRSAKey,
-		Algorithm: "RS256",
-		Use:       "sig",
-		KeyID:     "1", // KeyID should use the key thumbprint.
-	}
-
-	jwtSigner, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.RS256, Key: privateKey}, nil)
-	if err != nil {
-		log.Fatalf("failed to create jwtSigner: %v", err)
-	}
-
-	openIDPublicKeys = &jose.JSONWebKeySet{
-		Keys: []jose.JSONWebKey{
-			jose.JSONWebKey{
-				Key:       &ucenter.SystemRSAKey.PublicKey,
-				Algorithm: "RS256",
-				Use:       "sig",
-				KeyID:     "1",
-			},
-		},
 	}
 }
 

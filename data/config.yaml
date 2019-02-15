@@ -1,5 +1,5 @@
 auth_cookie_name: nb_uctoken
-dbdsn: root@tcp(127.0.0.1:3306)/ucenter?parseTime=True&loc=Asia%2FShanghai
+dbdsn: "host=myhost port=myport user=gorm dbname=gorm password=mypassword"
 domain: localhost:8080
 web_protocol: http
 debug: true
