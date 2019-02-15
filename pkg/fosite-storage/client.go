@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -141,6 +142,25 @@ type FositeClient struct {
 
 	// UpdatedAt returns the timestamp of the last update.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+}
+
+// BeforeSave hook
+func (c *FositeClient) BeforeSave() error {
+	t, err := json.Marshal(c.JSONWebKeys)
+	c.rawJSONWebKeys = string(t)
+	return err
+}
+
+// BeforeUpdate hook
+func (c *FositeClient) BeforeUpdate() error {
+	t, err := json.Marshal(c.JSONWebKeys)
+	c.rawJSONWebKeys = string(t)
+	return err
+}
+
+// AfterFind hook
+func (c *FositeClient) AfterFind() error {
+	return json.Unmarshal([]byte(c.rawJSONWebKeys), &c.JSONWebKeys)
 }
 
 // GetID 获取ID

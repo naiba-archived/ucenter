@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RangelReale/osin"
 	"github.com/jinzhu/gorm"
 	"github.com/naiba/com"
 
@@ -333,4 +334,133 @@ func signupHandler(c *gin.Context) {
 	}
 	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 	c.Redirect(http.StatusFound, "/login?"+c.Request.URL.RawQuery)
+}
+
+func editOauth2App(c *gin.Context) {
+	type Oauth2AppForm struct {
+		ID          string `form:"id" cfn:"ID" binding:"omitempty,min=3,max=255"`
+		Name        string `form:"name" cfn:"应用名" binding:"required,min=1,max=20"`
+		Desc        string `form:"desc" cfn:"简介" binding:"required,min=1,max=100"`
+		URL         string `form:"url" cfn:"首页链接" binding:"required,url,min=11,max=100"`
+		RedirectURI string `form:"redirect_uri" cfn:"跳转链接" binding:"required,url,min=1,max=255"`
+	}
+
+	var ef Oauth2AppForm
+	var errors = make(map[string]string)
+	u := c.MustGet(ucenter.AuthUser).(*ucenter.User)
+
+	// 验证用户输入
+	if err := c.ShouldBind(&ef); err != nil {
+		errors = err.(validator.ValidationErrors).Translate(ucenter.ValidatorTrans)
+	}
+
+	// 验证头像是否是图片文件
+	avatar, err := c.FormFile("avatar")
+	var f multipart.File
+	if err == nil {
+		f, err = avatar.Open()
+		if err != nil {
+			errors["editOauthAppForm.应用名"] = err.Error()
+		} else {
+			defer f.Close()
+			buff := make([]byte, 512) // why 512 bytes ? see http://golang.org/pkg/net/http/#DetectContentType
+			_, err = f.Read(buff)
+			if err != nil {
+				errors["editOauthAppForm.应用名"] = err.Error()
+			} else if !strings.HasPrefix(http.DetectContentType(buff), "image/") {
+				errors["editOauthAppForm.应用名"] = "头像不是图片文件"
+			}
+		}
+		if !isImage.MatchString(avatar.Filename) {
+			errors["editOauthAppForm.应用名"] = "头像不是图片文件"
+		} else if avatar.Size > 1024*1024*2 {
+			errors["editOauthAppForm.应用名"] = "头像不能大于 2 M"
+		}
+	} else if ef.ID == "" {
+		errors["editOauthAppForm.圆图标"] = "圆图标必须上传"
+	}
+
+	var client ucenter.Oauth2Client
+	isNewClient := false
+
+	// 验证管理权
+	if len(ef.ID) > 0 {
+		oc, err := osinStore.GetClient(ef.ID)
+		isAdmin := ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel)
+		if err != nil || (!strings.HasPrefix(ef.ID, u.StrID()+"-") && !isAdmin) {
+			errors["editOauthAppForm.应用名"] = "ID错误"
+		} else {
+			client, err = ucenter.ToOauth2Client(oc)
+			if err != nil {
+				errors["editOauthAppForm.应用名"] = "服务器错误，解析JSON"
+			}
+		}
+		if client.Ext.Status == ucenter.StatusOauthClientSuspended && !isAdmin {
+			errors["editOauthAppForm.应用名"] = "应用已被禁用，无法进行操作"
+		}
+	} else {
+		isNewClient = true
+		client.ID, err = genClientID(u.StrID())
+		if err != nil {
+			errors["editOauthAppForm.应用名"] = "服务器错误，解析JSON"
+		} else {
+			client.Secret = com.RandomString(16)
+		}
+	}
+
+	// 储存头像
+	if len(errors) == 0 && f != nil {
+		f.Seek(0, 0)
+		out, err := os.Create("data/upload/avatar/" + client.ID)
+		if err != nil {
+			errors["editOauthAppForm.应用名"] = "服务器错误，头像储存"
+		} else {
+			defer out.Close()
+			io.Copy(out, f)
+		}
+	}
+
+	// 应用入库
+	if len(errors) == 0 {
+		var oc osin.Client
+		client.Ext.Name = ef.Name
+		client.Ext.Desc = ef.Desc
+		client.Ext.URL = ef.URL
+		client.RedirectURI = ef.RedirectURI
+		oc, err = client.ToOsinClient()
+		if isNewClient {
+			err = osinStore.CreateClient(oc)
+		} else {
+			err = osinStore.UpdateClient(oc)
+		}
+		if err != nil {
+			errors["editOauthAppForm.应用名"] = "存入数据库出错"
+		}
+	}
+
+	if len(errors) > 0 {
+		c.JSON(http.StatusForbidden, errors)
+		return
+	}
+}
+
+func deleteOauth2App(c *gin.Context) {
+	if !strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain) {
+		c.String(http.StatusForbidden, "CSRF Protection")
+		return
+	}
+
+	id := c.Param("id")
+	u := c.MustGet(ucenter.AuthUser).(*ucenter.User)
+	if strings.HasPrefix(id, u.StrID()+"-") && !ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel) {
+		c.HTML(http.StatusForbidden, "page/info", gin.H{
+			"icon":  "low vision",
+			"title": "权限不足",
+			"msg":   "您的权限不足以访问此页面哟",
+		})
+		return
+	}
+
+	ucenter.DB.Delete(ucenter.UserAuthorized{}, "client_id = ?", id)
+	ucenter.DB.Delete(ucenter.OsinClient{}, "id = ?", id)
 }

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ory/fosite/handler/oauth2"
+
 	"github.com/ory/fosite"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +20,7 @@ import (
 	"github.com/ory/fosite/compose"
 )
 
-var oauth2 fosite.OAuth2Provider
+var oauth2provider fosite.OAuth2Provider
 var oauth2store fosite.Storage
 
 func initFosite() {
@@ -30,17 +32,17 @@ func initFosite() {
 	// variable.
 	var strat = compose.CommonStrategy{
 		// alternatively you could use:
-		//  OAuth2Strategy: compose.NewOAuth2JWTStrategy(ucenter.SystemRSAKey)
-		CoreStrategy: compose.NewOAuth2HMACStrategy(config,
-			[]byte("some-super-cool-secret-that-nobody-knows"),
-			[][]byte{
-				[]byte("some-super-cool-secret-that-nobody-knows")},
-		),
+		CoreStrategy: compose.NewOAuth2JWTStrategy(ucenter.SystemRSAKey, new(oauth2.HMACSHAStrategy)),
+		// CoreStrategy: compose.NewOAuth2HMACStrategy(config,
+		// 	[]byte("some-super-cool-secret-that-nobody-knows"),
+		// 	[][]byte{
+		// 		[]byte("some-super-cool-secret-that-nobody-knows")},
+		// ),
 		// open id connect strategy
 		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(config, ucenter.SystemRSAKey),
 	}
 
-	oauth2 = compose.Compose(
+	oauth2provider = compose.Compose(
 		config,
 		oauth2store,
 		strat,
@@ -127,17 +129,10 @@ func ServWeb() {
 	// Oauth2
 	o := r.Group("oauth2")
 	{
-		// Authorization code endpoint
-		o.GET("auth", oauth2auth)
-		o.POST("auth", oauth2auth)
-		// Access token endpoint
-		o.GET("token", oauth2token)
-		o.POST("token", oauth2token)
-		o.GET("info", oauth2info)
-		o.GET("publickeys", openIDConnectPublickeys)
-
-		// OpenIDConnect
-		r.GET("/.well-known/openid-configuration", openIDConnectDiscovery)
+		o.Any("auth", oauth2auth)
+		o.Any("token", oauth2token)
+		o.Any("/oauth2/revoke", revokeEndpoint)
+		o.Any("/oauth2/introspect", introspectionEndpoint)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
