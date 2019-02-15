@@ -26,6 +26,14 @@
   version = "v1.3.1"
 
 [[projects]]
+  digest = "1:320e7ead93de9fd2b0e59b50fd92a4d50c1f8ab455d96bc2eb083267453a9709"
+  name = "github.com/asaskevich/govalidator"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ccb8e960c48f04d6935e72476ae4a51028f9e22f"
+  version = "v9"
+
+[[projects]]
   branch = "master"
   digest = "1:cf0163857cdc19eaac5ad413e76d58470e86f3bdeae6d3a3a512a4b25b87c169"
   name = "github.com/biezhi/gorm-paginator"
@@ -67,6 +75,14 @@
   pruneopts = "UT"
   revision = "1180514eaf4d9f38d0d19eef639a1d695e066e72"
   version = "v2.0.0"
+
+[[projects]]
+  digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
 
 [[projects]]
   branch = "master"
@@ -264,6 +280,14 @@
   version = "1.0.1"
 
 [[projects]]
+  branch = "master"
+  digest = "1:84bd7f8a2e0bcd53ddc33c3b47c34c1fe340c8632cbe928f7f8ae10ec6ecdd62"
+  name = "github.com/mohae/deepcopy"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c48cc78d482608239f6c4c92a4abd87eb8761c90"
+
+[[projects]]
   digest = "1:12c305f5ce44a799edabd05b5a8f3c4ad9475f8d9c357eefd8e3425711a6e39c"
   name = "github.com/mssola/user_agent"
   packages = ["."]
@@ -280,6 +304,25 @@
   revision = "927647a4f54e5db5a040fb97799fca9ed9d0bcd3"
 
 [[projects]]
+  digest = "1:da5339a44d93360707e24c96b429f833015ac5d2aaf3bb2a531fb4bd365a3279"
+  name = "github.com/ory/fosite"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2f58f9e0ea1a197c8b7eb62dc545d9467ed2ff10"
+  version = "v0.29.0"
+
+[[projects]]
+  digest = "1:625d3085f32f0b3ff11aa3a44a4b4d979c60cfefa49db9008a57d0017d11deee"
+  name = "github.com/ory/go-convenience"
+  packages = [
+    "stringslice",
+    "stringsx",
+  ]
+  pruneopts = "UT"
+  revision = "ab120a447a7fe88a9c3b7cbfca477340b0e88ef3"
+  version = "v0.1.0"
+
+[[projects]]
   digest = "1:e5d0bd87abc2781d14e274807a470acd180f0499f8bf5bb18606e9ec22ad9de9"
   name = "github.com/pborman/uuid"
   packages = ["."]
@@ -294,6 +337,14 @@
   pruneopts = "UT"
   revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
   version = "v1.2.0"
+
+[[projects]]
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [[projects]]
   branch = "master"
@@ -492,6 +543,8 @@
     "github.com/jinzhu/gorm/dialects/mysql",
     "github.com/mssola/user_agent",
     "github.com/naiba/com",
+    "github.com/ory/fosite",
+    "github.com/pkg/errors",
     "github.com/spf13/viper",
     "golang.org/x/crypto/bcrypt",
     "golang.org/x/net/context",
