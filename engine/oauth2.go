@@ -16,7 +16,7 @@ import (
 	"github.com/naiba/com"
 	"github.com/naiba/ucenter/pkg/nbgin"
 	"github.com/naiba/ucenter/pkg/ram"
-	validator "gopkg.in/go-playground/validator.v9"
+	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/naiba/ucenter"
 

@@ -18,14 +18,6 @@
   revision = "0f3357bb07e801ea62327872d19913969001dd7a"
 
 [[projects]]
-  digest = "1:2399db8fa7e542855de27b4518353f94d0841c08dca4bc86fa1eaaa52ab3ef20"
-  name = "github.com/ansel1/merry"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "5429a08c10ad44bc57a5dbbf49fd44a6371fb167"
-  version = "v1.3.1"
-
-[[projects]]
   digest = "1:320e7ead93de9fd2b0e59b50fd92a4d50c1f8ab455d96bc2eb083267453a9709"
   name = "github.com/asaskevich/govalidator"
   packages = ["."]
@@ -83,22 +75,6 @@
   pruneopts = "UT"
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
   version = "v3.2.0"
-
-[[projects]]
-  branch = "master"
-  digest = "1:9faf36431bedc19ecedbfe05f7be01676b598647ca8aa34139e2fd510e61126e"
-  name = "github.com/felipeweb/gopher-utils"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "05a00fc86ef51b7b351fb05a0e13307c85dbe115"
-
-[[projects]]
-  branch = "master"
-  digest = "1:641f91f80e3f4357ab4271b7d391c9bca8a82863f5dcd087a8346a8e4cf2024a"
-  name = "github.com/felipeweb/osin-mysql"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "269603eb06cfa0a1e839d3c9c59ddab39cf6fb9e"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
@@ -304,12 +280,14 @@
   revision = "927647a4f54e5db5a040fb97799fca9ed9d0bcd3"
 
 [[projects]]
-  digest = "1:771099d049c0196632ef3beac770c8282edc3bb3ddee25d675bc36341e410d33"
+  digest = "1:c9af71d2360d20b4f77ca1538a1d6fbb907b108b5542908dc8037cc79390cb01"
   name = "github.com/ory/fosite"
   packages = [
     ".",
+    "compose",
     "handler/oauth2",
     "handler/openid",
+    "handler/pkce",
     "storage",
     "token/hmac",
     "token/jwt",
@@ -540,7 +518,6 @@
     "github.com/casbin/casbin/model",
     "github.com/casbin/gorm-adapter",
     "github.com/coreos/go-oidc",
-    "github.com/felipeweb/osin-mysql",
     "github.com/gin-gonic/gin",
     "github.com/gin-gonic/gin/binding",
     "github.com/go-playground/locales/en",
@@ -553,6 +530,7 @@
     "github.com/mssola/user_agent",
     "github.com/naiba/com",
     "github.com/ory/fosite",
+    "github.com/ory/fosite/compose",
     "github.com/ory/fosite/handler/openid",
     "github.com/ory/fosite/token/jwt",
     "github.com/pkg/errors",

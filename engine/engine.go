@@ -6,28 +6,67 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ory/fosite"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/naiba/com"
 	"github.com/naiba/ucenter"
+	"github.com/naiba/ucenter/pkg/fosite-storage"
 	"github.com/naiba/ucenter/pkg/nbgin"
 	"github.com/naiba/ucenter/pkg/ram"
-
-	// MySQL Driver
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/ory/fosite/compose"
 )
 
-func initOsinResource() {
-	db, err := gorm.Open("postgres", ucenter.C.DBDSN)
-	if err != nil {
-		panic(err)
+var oauth2 fosite.OAuth2Provider
+var oauth2store fosite.Storage
+
+func initFosite() {
+	oauth2store = storage.NewFositeStore(ucenter.DB, true)
+
+	var config = new(compose.Config)
+
+	// Because we are using oauth2 and open connect id, we use this little helper to combine the two in one
+	// variable.
+	var strat = compose.CommonStrategy{
+		// alternatively you could use:
+		//  OAuth2Strategy: compose.NewOAuth2JWTStrategy(ucenter.SystemRSAKey)
+		CoreStrategy: compose.NewOAuth2HMACStrategy(config,
+			[]byte("some-super-cool-secret-that-nobody-knows"),
+			[][]byte{
+				[]byte("some-super-cool-secret-that-nobody-knows")},
+		),
+		// open id connect strategy
+		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(config, ucenter.SystemRSAKey),
 	}
+
+	oauth2 = compose.Compose(
+		config,
+		oauth2store,
+		strat,
+		nil,
+
+		// enabled handlers
+		compose.OAuth2AuthorizeExplicitFactory,
+		compose.OAuth2AuthorizeImplicitFactory,
+		compose.OAuth2ClientCredentialsGrantFactory,
+		compose.OAuth2RefreshTokenGrantFactory,
+		compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
+
+		compose.OAuth2TokenRevocationFactory,
+		compose.OAuth2TokenIntrospectionFactory,
+
+		// be aware that open id connect factories need to be added after oauth2 factories to work properly.
+		compose.OpenIDConnectExplicitFactory,
+		compose.OpenIDConnectImplicitFactory,
+		compose.OpenIDConnectHybridFactory,
+		compose.OpenIDConnectRefreshFactory,
+	)
 }
 
 // ServWeb 开启Web服务
 func ServWeb() {
-	initOsinResource()
+	initFosite()
 	binding.Validator = new(nbgin.DefaultValidator)
 	r := gin.Default()
 	r.Static("static", "static")
@@ -121,7 +160,7 @@ func ServWeb() {
 func genClientID(uid string) (id string, err error) {
 	for i := 0; i < 100; i++ {
 		id = uid + "-" + com.RandomString(6)
-		if _, err = osinStore.GetClient(id); err == nil {
+		if _, err = oauth2store.GetClient(nil, id); err == nil {
 			continue
 		}
 		return id, nil

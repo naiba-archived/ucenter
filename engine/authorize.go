@@ -7,8 +7,6 @@ import (
 
 	"github.com/naiba/ucenter/pkg/nbgin"
 
-	"github.com/RangelReale/osin"
-
 	"github.com/gin-gonic/gin"
 	"github.com/naiba/ucenter"
 )
@@ -39,24 +37,13 @@ func authorizeMiddleware(c *gin.Context) {
 	}
 	var authorizedUser *ucenter.User
 
-	// 1. 从 Cookie 认证
+	// 从 Cookie 认证
 	tk, err := c.Cookie(ucenter.C.AuthCookieName)
 	if err == nil {
 		var loginClient ucenter.Login
 		if ucenter.DB.Preload("User").Where("token = ?", tk).First(&loginClient).Error == nil {
 			authorizedUser = &loginClient.User
 			c.Set(ucenter.AuthType, ucenter.AuthTypeCookie)
-		}
-	}
-
-	// 2. 从 AccessToken 认证
-	bearer := osin.CheckBearerAuth(c.Request)
-	if bearer != nil {
-		ad, err := osinStore.LoadAccess(bearer.Code)
-		if err == nil && ad != nil && !ad.IsExpired() && ad.UserData != nil {
-			user := ad.UserData.(ucenter.User)
-			authorizedUser = &user
-			c.Set(ucenter.AuthType, ucenter.AuthTypeAccessToken)
 		}
 	}
 
