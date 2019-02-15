@@ -10,18 +10,16 @@ import (
 	"github.com/ory/fosite/token/jwt"
 )
 
-// Session 授权 Session
-type Session struct {
+// FositeSession 授权 FositeSession
+type FositeSession struct {
 	*openid.DefaultSession `json:"idToken"`
 	Extra                  map[string]interface{} `json:"extra"`
-	KID                    string
 	ClientID               string
-	ConsentChallenge       string
 }
 
-// NewSession 新 Session
-func NewSession(subject string) *Session {
-	return &Session{
+// NewFositeSession 新 Session
+func NewFositeSession(subject string) *FositeSession {
+	return &FositeSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims:  new(jwt.IDTokenClaims),
 			Headers: new(jwt.Headers),
@@ -32,7 +30,7 @@ func NewSession(subject string) *Session {
 }
 
 // GetJWTClaims 获取 jwt claims
-func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
+func (s *FositeSession) GetJWTClaims() jwt.JWTClaimsContainer {
 	claims := &jwt.JWTClaims{
 		Subject:   s.Subject,
 		Issuer:    s.DefaultSession.Claims.Issuer,
@@ -64,14 +62,14 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 }
 
 // GetJWTHeader 获取 jwt header
-func (s *Session) GetJWTHeader() *jwt.Headers {
+func (s *FositeSession) GetJWTHeader() *jwt.Headers {
 	return &jwt.Headers{
-		Extra: map[string]interface{}{"kid": s.KID},
+		Extra: map[string]interface{}{},
 	}
 }
 
 // Clone 克隆
-func (s *Session) Clone() fosite.Session {
+func (s *FositeSession) Clone() fosite.Session {
 	if s == nil {
 		return nil
 	}

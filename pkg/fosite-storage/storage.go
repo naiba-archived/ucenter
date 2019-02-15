@@ -3,19 +3,15 @@ package storage
 import (
 	"context"
 	"crypto/sha512"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 
-	"golang.org/x/crypto/bcrypt"
-
-	"github.com/naiba/ucenter"
-
-	"github.com/lib/pq"
-
 	"github.com/jinzhu/gorm"
+	"github.com/lib/pq"
+	"github.com/naiba/ucenter"
 	"github.com/ory/fosite"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -40,6 +36,11 @@ func NewFositeStore(db *gorm.DB, hashSignature bool) *FositeStore {
 	}
 }
 
+// Migrate db migrate
+func (s *FositeStore) Migrate() error {
+	return s.db.AutoMigrate(FositeAccess{}, FositeCode{}, FositeOidc{}, FositePkce{}, FositeRefresh{}).Error
+}
+
 func (s *FositeStore) hashSignature(signature string, table int) string {
 	if table == sqlTableAccess && s.HashSignature {
 		return fmt.Sprintf("%x", sha512.Sum384([]byte(signature)))
@@ -58,19 +59,8 @@ func sqlDataFromRequest(signature string, r fosite.Requester) (baseSessionTable,
 		return baseSessionTable{}, errors.WithStack(err)
 	}
 
-	var challenge sql.NullString
-	rr, ok := r.GetSession().(*Session)
-	if !ok && r.GetSession() != nil {
-		return baseSessionTable{}, errors.Errorf("Expected request to be of type *Session, but got: %T", r.GetSession())
-	} else if ok {
-		if len(rr.ConsentChallenge) > 0 {
-			challenge = sql.NullString{Valid: true, String: rr.ConsentChallenge}
-		}
-	}
-
 	return baseSessionTable{
 		RequestID:         r.GetID(),
-		ConsentChallenge:  challenge,
 		Signature:         signature,
 		RequestedAt:       r.GetRequestedAt(),
 		ClientID:          r.GetClient().GetID(),
@@ -153,7 +143,7 @@ func (s *FositeStore) DeleteOpenIDConnectSession(_ context.Context, signature st
 
 // GetClient 获取终端
 func (s *FositeStore) GetClient(_ context.Context, id string) (fosite.Client, error) {
-	var c Client
+	var c FositeClient
 	if err := s.db.First(&c, "client_id = ?", id).Error; err == gorm.ErrRecordNotFound {
 		return nil, fosite.ErrNotFound
 	} else if err != nil {

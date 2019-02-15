@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"database/sql"
 	"encoding/json"
 	"net/url"
 	"time"
@@ -15,7 +14,6 @@ type baseSessionTable struct {
 	ID                int64 `gorm:"primary_key"`
 	Signature         string
 	RequestID         string
-	ConsentChallenge  sql.NullString
 	RequestedAt       time.Time
 	ClientID          string
 	Scopes            pq.StringArray

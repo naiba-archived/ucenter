@@ -5,16 +5,14 @@ import (
 	"time"
 
 	"github.com/lib/pq"
-
-	"gopkg.in/square/go-jose.v2"
-
 	"github.com/ory/fosite" // Naming the dependency jose is important for go-swagger to work, see https://github.com/go-swagger/go-swagger/issues/1587
+	"gopkg.in/square/go-jose.v2"
 )
 
-// Client represents an OAuth 2.0 Client.
+// FositeClient represents an OAuth 2.0 FositeClient.
 //
 // swagger:model oAuth2Client
-type Client struct {
+type FositeClient struct {
 	// ClientID  is the id for this client.
 	ClientID string `gorm:"primary_key" json:"client_id"`
 
@@ -146,32 +144,32 @@ type Client struct {
 }
 
 // GetID 获取ID
-func (c *Client) GetID() string {
+func (c *FositeClient) GetID() string {
 	return c.ClientID
 }
 
 // GetRedirectURIs 获取跳转链接
-func (c *Client) GetRedirectURIs() []string {
+func (c *FositeClient) GetRedirectURIs() []string {
 	return c.RedirectURIs
 }
 
 // GetHashedSecret 获取加密密钥
-func (c *Client) GetHashedSecret() []byte {
+func (c *FositeClient) GetHashedSecret() []byte {
 	return []byte(c.Secret)
 }
 
 // GetScopes 获取 授权项
-func (c *Client) GetScopes() fosite.Arguments {
+func (c *FositeClient) GetScopes() fosite.Arguments {
 	return fosite.Arguments(strings.Fields(c.Scope))
 }
 
 // GetAudience 获取 Audience
-func (c *Client) GetAudience() fosite.Arguments {
+func (c *FositeClient) GetAudience() fosite.Arguments {
 	return fosite.Arguments(c.Audience)
 }
 
 // GetGrantTypes 获取授权类型
-func (c *Client) GetGrantTypes() fosite.Arguments {
+func (c *FositeClient) GetGrantTypes() fosite.Arguments {
 	// https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata
 	//
 	// JSON array containing a list of the OAuth 2.0 Grant Types that the Client is declaring
@@ -184,7 +182,7 @@ func (c *Client) GetGrantTypes() fosite.Arguments {
 }
 
 // GetResponseTypes 获取输出类型
-func (c *Client) GetResponseTypes() fosite.Arguments {
+func (c *FositeClient) GetResponseTypes() fosite.Arguments {
 	// https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata
 	//
 	// <JSON array containing a list of the OAuth 2.0 response_type values that the Client is declaring
@@ -197,32 +195,32 @@ func (c *Client) GetResponseTypes() fosite.Arguments {
 }
 
 // GetOwner 获取所有者
-func (c *Client) GetOwner() string {
+func (c *FositeClient) GetOwner() string {
 	return c.Owner
 }
 
 // IsPublic 是否公开
-func (c *Client) IsPublic() bool {
+func (c *FositeClient) IsPublic() bool {
 	return c.TokenEndpointAuthMethod == "none"
 }
 
 // GetJSONWebKeysURI 获取公钥URI
-func (c *Client) GetJSONWebKeysURI() string {
+func (c *FositeClient) GetJSONWebKeysURI() string {
 	return c.JSONWebKeysURI
 }
 
 // GetJSONWebKeys 获取公钥
-func (c *Client) GetJSONWebKeys() *jose.JSONWebKeySet {
+func (c *FositeClient) GetJSONWebKeys() *jose.JSONWebKeySet {
 	return c.JSONWebKeys
 }
 
 // GetTokenEndpointAuthSigningAlgorithm -
-func (c *Client) GetTokenEndpointAuthSigningAlgorithm() string {
+func (c *FositeClient) GetTokenEndpointAuthSigningAlgorithm() string {
 	return "RS256"
 }
 
 // GetRequestObjectSigningAlgorithm -
-func (c *Client) GetRequestObjectSigningAlgorithm() string {
+func (c *FositeClient) GetRequestObjectSigningAlgorithm() string {
 	if c.RequestObjectSigningAlgorithm == "" {
 		return "RS256"
 	}
@@ -230,7 +228,7 @@ func (c *Client) GetRequestObjectSigningAlgorithm() string {
 }
 
 // GetTokenEndpointAuthMethod -
-func (c *Client) GetTokenEndpointAuthMethod() string {
+func (c *FositeClient) GetTokenEndpointAuthMethod() string {
 	if c.TokenEndpointAuthMethod == "" {
 		return "client_secret_basic"
 	}
@@ -238,6 +236,6 @@ func (c *Client) GetTokenEndpointAuthMethod() string {
 }
 
 // GetRequestURIs -
-func (c *Client) GetRequestURIs() []string {
+func (c *FositeClient) GetRequestURIs() []string {
 	return c.RequestURIs
 }
