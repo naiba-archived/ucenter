@@ -2,11 +2,32 @@ package storage
 
 import (
 	"context"
+	"database/sql"
+	"time"
+
+	"github.com/lib/pq"
 
 	"github.com/jinzhu/gorm"
 	"github.com/ory/fosite"
 	"github.com/pkg/errors"
 )
+
+type baseSessionTable struct {
+	PK                int
+	Signature         string
+	RequestID         string
+	ConsentChallenge  sql.NullString
+	RequestedAt       time.Time
+	ClientID          string
+	Scopes            pq.StringArray
+	GrantedScope      pq.StringArray
+	RequestedAudience pq.StringArray
+	GrantedAudience   pq.StringArray
+	Form              string
+	Subject           string
+	Active            bool
+	Session           []byte
+}
 
 type MemoryUserRelation struct {
 	Username string
