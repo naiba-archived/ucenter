@@ -136,13 +136,15 @@ func (s *FositeStore) DeleteOpenIDConnectSession(_ context.Context, signature st
 	return s.deleteSession(signature, sqlTableOpenID)
 }
 
+// GetClient 获取终端
 func (s *FositeStore) GetClient(_ context.Context, id string) (fosite.Client, error) {
-
-	cl, ok := s.Clients[id]
-	if !ok {
+	var c Client
+	if err := s.db.First(&c, "client_id = ?", id).Error; err == gorm.ErrRecordNotFound {
 		return nil, fosite.ErrNotFound
+	} else if err != nil {
+		return nil, fosite.ErrServerError
 	}
-	return cl, nil
+	return &c, nil
 }
 
 func (s *FositeStore) CreateAuthorizeCodeSession(_ context.Context, code string, req fosite.Requester) error {

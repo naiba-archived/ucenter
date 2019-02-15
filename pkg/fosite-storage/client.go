@@ -4,7 +4,9 @@ import (
 	"strings"
 	"time"
 
-	jose "gopkg.in/square/go-jose.v2"
+	"github.com/lib/pq"
+
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/ory/fosite" // Naming the dependency jose is important for go-swagger to work, see https://github.com/go-swagger/go-swagger/issues/1587
 )
@@ -14,7 +16,7 @@ import (
 // swagger:model oAuth2Client
 type Client struct {
 	// ClientID  is the id for this client.
-	ClientID string `json:"client_id"`
+	ClientID string `gorm:"primary_key" json:"client_id"`
 
 	// Name is the human-readable string name of the client to be presented to the
 	// end-user during authorization.
@@ -26,18 +28,18 @@ type Client struct {
 	Secret string `json:"client_secret,omitempty"`
 
 	// RedirectURIs is an array of allowed redirect urls for the client, for example http://mydomain/oauth/callback .
-	RedirectURIs []string `json:"redirect_uris"`
+	RedirectURIs pq.StringArray `json:"redirect_uris"`
 
 	// GrantTypes is an array of grant types the client is allowed to use.
 	//
 	// Pattern: client_credentials|authorization_code|implicit|refresh_token
-	GrantTypes []string `json:"grant_types"`
+	GrantTypes pq.StringArray `json:"grant_types"`
 
 	// ResponseTypes is an array of the OAuth 2.0 response type strings that the client can
 	// use at the authorization endpoint.
 	//
 	// Pattern: id_token|code|token
-	ResponseTypes []string `json:"response_types"`
+	ResponseTypes pq.StringArray `json:"response_types"`
 
 	// Scope is a string containing a space-separated list of scope values (as
 	// described in Section 3.3 of OAuth 2.0 [RFC6749]) that the client
@@ -49,7 +51,7 @@ type Client struct {
 	// Audience is a whitelist defining the audiences this client is allowed to request tokens for. An audience limits
 	// the applicability of an OAuth 2.0 Access Token to, for example, certain API endpoints. The value is a list
 	// of URLs. URLs MUST NOT contain whitespaces.
-	Audience []string `json:"audience"`
+	Audience pq.StringArray `json:"audience"`
 
 	// Owner is a string identifying the owner of the OAuth 2.0 Client.
 	Owner string `json:"owner"`
@@ -63,7 +65,7 @@ type Client struct {
 	// to the /oauth/token endpoint. If this array is empty, the sever's CORS origin configuration (`CORS_ALLOWED_ORIGINS`)
 	// will be used instead. If this array is set, the allowed origins are appended to the server's CORS origin configuration.
 	// Be aware that environment variable `CORS_ENABLED` MUST be set to `true` for this to work.
-	AllowedCORSOrigins []string `json:"allowed_cors_origins"`
+	AllowedCORSOrigins pq.StringArray `json:"allowed_cors_origins"`
 
 	// TermsOfServiceURI is a URL string that points to a human-readable terms of service
 	// document for the client that describes a contractual relationship
@@ -81,7 +83,7 @@ type Client struct {
 
 	// Contacts is a array of strings representing ways to contact people responsible
 	// for this client, typically email addresses.
-	Contacts []string `json:"contacts"`
+	Contacts pq.StringArray `json:"contacts"`
 
 	// SecretExpiresAt is an integer holding the time at which the client
 	// secret will expire or 0 if it will not expire. The time is
@@ -114,7 +116,8 @@ type Client struct {
 	// can use jwks_uri, it MUST NOT use jwks. One significant downside of jwks is that it does not enable key rotation
 	// (which jwks_uri does, as described in Section 10 of OpenID Connect Core 1.0 [OpenID.Core]). The jwks_uri and jwks
 	// parameters MUST NOT be used together.
-	JSONWebKeys *jose.JSONWebKeySet `json:"jwks,omitempty"`
+	JSONWebKeys    *jose.JSONWebKeySet `gorm:"-" json:"jwks,omitempty"`
+	rawJSONWebKeys string              `json:"-"`
 
 	// Requested Client Authentication method for the Token Endpoint. The options are client_secret_post,
 	// client_secret_basic, private_key_jwt, and none.
@@ -124,7 +127,7 @@ type Client struct {
 	// contents of the files referenced by these URIs and not retrieve them at the time they are used in a request.
 	// OPs can require that request_uri values used be pre-registered with the require_request_uri_registration
 	// discovery parameter.
-	RequestURIs []string `json:"request_uris,omitempty"`
+	RequestURIs pq.StringArray `json:"request_uris,omitempty"`
 
 	// JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request Objects sent to the OP. All Request Objects
 	// from this Client MUST be rejected, if not signed with this algorithm.
@@ -142,26 +145,32 @@ type Client struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
+// GetID 获取ID
 func (c *Client) GetID() string {
 	return c.ClientID
 }
 
+// GetRedirectURIs 获取跳转链接
 func (c *Client) GetRedirectURIs() []string {
 	return c.RedirectURIs
 }
 
+// GetHashedSecret 获取加密密钥
 func (c *Client) GetHashedSecret() []byte {
 	return []byte(c.Secret)
 }
 
+// GetScopes 获取 授权项
 func (c *Client) GetScopes() fosite.Arguments {
 	return fosite.Arguments(strings.Fields(c.Scope))
 }
 
+// GetAudience 获取 Audience
 func (c *Client) GetAudience() fosite.Arguments {
 	return fosite.Arguments(c.Audience)
 }
 
+// GetGrantTypes 获取授权类型
 func (c *Client) GetGrantTypes() fosite.Arguments {
 	// https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata
 	//
@@ -174,6 +183,7 @@ func (c *Client) GetGrantTypes() fosite.Arguments {
 	return fosite.Arguments(c.GrantTypes)
 }
 
+// GetResponseTypes 获取输出类型
 func (c *Client) GetResponseTypes() fosite.Arguments {
 	// https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata
 	//
@@ -186,26 +196,32 @@ func (c *Client) GetResponseTypes() fosite.Arguments {
 	return fosite.Arguments(c.ResponseTypes)
 }
 
+// GetOwner 获取所有者
 func (c *Client) GetOwner() string {
 	return c.Owner
 }
 
+// IsPublic 是否公开
 func (c *Client) IsPublic() bool {
 	return c.TokenEndpointAuthMethod == "none"
 }
 
+// GetJSONWebKeysURI 获取公钥URI
 func (c *Client) GetJSONWebKeysURI() string {
 	return c.JSONWebKeysURI
 }
 
+// GetJSONWebKeys 获取公钥
 func (c *Client) GetJSONWebKeys() *jose.JSONWebKeySet {
 	return c.JSONWebKeys
 }
 
+// GetTokenEndpointAuthSigningAlgorithm -
 func (c *Client) GetTokenEndpointAuthSigningAlgorithm() string {
 	return "RS256"
 }
 
+// GetRequestObjectSigningAlgorithm -
 func (c *Client) GetRequestObjectSigningAlgorithm() string {
 	if c.RequestObjectSigningAlgorithm == "" {
 		return "RS256"
@@ -213,6 +229,7 @@ func (c *Client) GetRequestObjectSigningAlgorithm() string {
 	return c.RequestObjectSigningAlgorithm
 }
 
+// GetTokenEndpointAuthMethod -
 func (c *Client) GetTokenEndpointAuthMethod() string {
 	if c.TokenEndpointAuthMethod == "" {
 		return "client_secret_basic"
@@ -220,6 +237,7 @@ func (c *Client) GetTokenEndpointAuthMethod() string {
 	return c.TokenEndpointAuthMethod
 }
 
+// GetRequestURIs -
 func (c *Client) GetRequestURIs() []string {
 	return c.RequestURIs
 }
