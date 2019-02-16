@@ -6,7 +6,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"time"
+
+	"github.com/lib/pq"
 
 	"github.com/naiba/ucenter/pkg/fosite-storage"
 
@@ -79,118 +80,47 @@ func oauth2auth(c *gin.Context) {
 				}
 				perms[scope] = c.PostForm(scope) == "on"
 			}
-			if !resp.IsError {
-				if len(user.UserAuthorizeds) == 0 {
-					user.UserAuthorizeds = make([]ucenter.UserAuthorized, 0)
-					user.UserAuthorizeds = append(user.UserAuthorizeds, ucenter.UserAuthorized{})
-				}
-				user.UserAuthorizeds[0].Scope = ar.Scope
-				user.UserAuthorizeds[0].Permission = perms
-				user.UserAuthorizeds[0].UserID = user.ID
-				user.UserAuthorizeds[0].ClientID = ar.Client.GetId()
-				user.UserAuthorizeds[0].EncodePermission()
-				// 新增授权还是更新授权
-				if err := ucenter.DB.Save(&user.UserAuthorizeds[0]).Error; err != nil {
-					resp.SetError(osin.E_SERVER_ERROR, err.Error())
-				} else {
-					// 认证通过标识
-					ar.Authorized = true
-				}
+			if len(user.UserAuthorizeds) == 0 {
+				user.UserAuthorizeds = make([]ucenter.UserAuthorized, 0)
+				user.UserAuthorizeds = append(user.UserAuthorizeds, ucenter.UserAuthorized{})
+			}
+			user.UserAuthorizeds[0].Scope = pq.StringArray(ar.GetRequestedScopes())
+			user.UserAuthorizeds[0].Permission = perms
+			user.UserAuthorizeds[0].UserID = user.ID
+			user.UserAuthorizeds[0].ClientID = ar.GetClient().GetID()
+			// 新增授权还是更新授权
+			if err := ucenter.DB.Save(&user.UserAuthorizeds[0]).Error; err != nil {
+				oauth2provider.WriteAuthorizeError(c.Writer, ar, err)
+				return
 			}
 		} else {
-			resp.SetError(osin.E_INVALID_REQUEST, "不支持的请求方式哦。")
+			oauth2provider.WriteAuthorizeError(c.Writer, ar, fosite.ErrInvalidRequest)
+			return
 		}
-		if ar.Authorized && !resp.IsError {
-			scop := make([]byte, 0)
-			for k, v := range user.UserAuthorizeds[0].Permission {
-				if v {
-					scop = append(scop, []byte(k+" ")...)
-				}
+		scop := make([]byte, 0)
+		for k, v := range user.UserAuthorizeds[0].Permission {
+			if v {
+				ar.GrantScope(k)
+				scop = append(scop, []byte(k+" ")...)
 			}
-			if len(scop) > 2 {
-				ar.Scope = string(scop[:len(scop)-1])
-			} else {
-				ar.Scope = ""
-			}
-			// 如果是 OpenIDConnect，特殊照顾
-			if user.UserAuthorizeds[0].Permission["openid"] {
-				now := time.Now()
-				url := ucenter.C.WebProtocol + "://" + ucenter.C.Domain
-				idToken := IDToken{
-					Issuer:     url,
-					UserID:     user.StrID(),
-					ClientID:   ar.Client.GetId(),
-					Expiration: now.Add(time.Hour).Unix(),
-					IssuedAt:   now.Unix(),
-					Nonce:      c.Request.URL.Query().Get("nonce"),
-				}
-
-				if user.UserAuthorizeds[0].Permission["profile"] {
-					idToken.Name = user.Username
-					idToken.Bio = user.Bio
-					idToken.Avatar = url + "/upload/avatar/" + user.StrID()
-				}
-
-				tmp, _ := json.Marshal(idToken)
-				ar.UserData = string(tmp)
-			}
-			osinServer.FinishAuthorizeRequest(resp, c.Request, ar)
 		}
+		mySessionData := storage.NewFositeSession(user.StrID())
+
+		response, err := oauth2provider.NewAuthorizeResponse(ctx, ar, mySessionData)
+
+		if err != nil {
+			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
+			oauth2provider.WriteAuthorizeError(c.Writer, ar, err)
+			return
+		}
+
+		// Last but not least, send the response!
+		oauth2provider.WriteAuthorizeResponse(c.Writer, ar, response)
 	} else {
 		// 用户未登录，跳转登录界面
-		resp.SetRedirect("/login?return_url=" + url.QueryEscape(c.Request.RequestURI))
+		nbgin.SetNoCache(c)
+		c.Redirect(http.StatusFound, "/login?return_url="+url.QueryEscape(c.Request.RequestURI))
 	}
-	for _, scope := range req.PostForm["scopes"] {
-		ar.GrantScope(scope)
-	}
-
-	// Now that the user is authorized, we set up a session:
-	mySessionData := newSession("peter")
-
-	// When using the HMACSHA strategy you must use something that implements the HMACSessionContainer.
-	// It brings you the power of overriding the default values.
-	//
-	// mySessionData.HMACSession = &strategy.HMACSession{
-	//	AccessTokenExpiry: time.Now().Add(time.Day),
-	//	AuthorizeCodeExpiry: time.Now().Add(time.Day),
-	// }
-	//
-
-	// If you're using the JWT strategy, there's currently no distinction between access token and authorize code claims.
-	// Therefore, you both access token and authorize code will have the same "exp" claim. If this is something you
-	// need let us know on github.
-	//
-	// mySessionData.JWTClaims.ExpiresAt = time.Now().Add(time.Day)
-
-	// It's also wise to check the requested scopes, e.g.:
-	// if authorizeRequest.GetScopes().Has("admin") {
-	//     http.Error(rw, "you're not allowed to do that", http.StatusForbidden)
-	//     return
-	// }
-
-	// Now we need to get a response. This is the place where the AuthorizeEndpointHandlers kick in and start processing the request.
-	// NewAuthorizeResponse is capable of running multiple response type handlers which in turn enables this library
-	// to support open id connect.
-	response, err := oauth2.NewAuthorizeResponse(ctx, ar, mySessionData)
-
-	// Catch any errors, e.g.:
-	// * unknown client
-	// * invalid redirect
-	// * ...
-	if err != nil {
-		log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
-		oauth2.WriteAuthorizeError(rw, ar, err)
-		return
-	}
-
-	// Last but not least, send the response!
-	oauth2.WriteAuthorizeResponse(rw, ar, response)
-
-	if resp.IsError && resp.InternalError != nil {
-		log.Println("ERROR Oauth2: ", resp.InternalError)
-	}
-
-	osin.OutputJSON(resp, c.Writer, c.Request)
 }
 
 func oauth2token(c *gin.Context) {
