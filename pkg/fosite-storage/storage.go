@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	sqlTableOpenID = iota
-	sqlTableAccess
-	sqlTableRefresh
-	sqlTableCode
-	sqlTablePKCE
+	sqlTableOpenID  = "sqlTableOpenID"
+	sqlTableAccess  = "sqlTableAccess"
+	sqlTableRefresh = "sqlTableRefresh"
+	sqlTableCode    = "sqlTableCode"
+	sqlTablePKCE    = "sqlTablePKCE"
 )
 
 // FositeStore Fosite 的 Postgres 储存
@@ -41,7 +41,7 @@ func (s *FositeStore) Migrate() error {
 	return s.db.AutoMigrate(FositeAccess{}, FositeCode{}, FositeOidc{}, FositePkce{}, FositeRefresh{}, FositeClient{}).Error
 }
 
-func (s *FositeStore) hashSignature(signature string, table int) string {
+func (s *FositeStore) hashSignature(signature, table string) string {
 	if table == sqlTableAccess && s.HashSignature {
 		return fmt.Sprintf("%x", sha512.Sum384([]byte(signature)))
 	}
@@ -75,7 +75,7 @@ func sqlDataFromRequest(signature string, r fosite.Requester) (BaseSessionTable,
 	}, nil
 }
 
-func (s *FositeStore) createSession(table int, signature string, req fosite.Requester) error {
+func (s *FositeStore) createSession(table, signature string, req fosite.Requester) error {
 	signature = s.hashSignature(signature, table)
 	base, err := sqlDataFromRequest(signature, req)
 	if err != nil {
@@ -84,52 +84,71 @@ func (s *FositeStore) createSession(table int, signature string, req fosite.Requ
 
 	switch table {
 	case sqlTableOpenID:
-		return s.db.Save(&FositeOidc{base}).Error
+		return s.db.Save(&FositeOidc{&base}).Error
 	case sqlTableAccess:
-		return s.db.Save(&FositeAccess{base}).Error
+		return s.db.Save(&FositeAccess{&base}).Error
 	case sqlTablePKCE:
-		return s.db.Save(&FositePkce{base}).Error
+		return s.db.Save(&FositePkce{&base}).Error
 	case sqlTableRefresh:
-		return s.db.Save(&FositeRefresh{base}).Error
+		return s.db.Save(&FositeRefresh{&base}).Error
 	case sqlTableCode:
-		return s.db.Save(&FositeCode{base}).Error
+		return s.db.Save(&FositeCode{&base}).Error
 	}
 
 	return fosite.ErrInvalidRequest
 }
 
-func (s *FositeStore) findSessionBySignature(signature string, session fosite.Session, table int) (fosite.Requester, error) {
+func (s *FositeStore) findSessionBySignature(table, signature string, session fosite.Session) (fosite.Requester, error) {
 	signature = s.hashSignature(signature, table)
 
-	var d interface{}
+	var d BaseSessionTable
+	var err error
+
 	switch table {
 	case sqlTableOpenID:
-		d = &FositeOidc{}
+		err = s.db.Where("signature = ?", signature).First(&FositeOidc{&d}).Error
+	case sqlTableAccess:
+		err = s.db.Where("signature = ?", signature).First(&FositeAccess{&d}).Error
+	case sqlTableCode:
+		err = s.db.Where("signature = ?", signature).First(&FositeCode{&d}).Error
+	case sqlTableRefresh:
+		err = s.db.Where("signature = ?", signature).First(&FositeRefresh{&d}).Error
+	case sqlTablePKCE:
+		err = s.db.Where("signature = ?", signature).First(&FositePkce{&d}).Error
 	}
-	if err := s.db.Where("signature = ?", signature).First(d).Error; err == gorm.ErrRecordNotFound {
+
+	if err == gorm.ErrRecordNotFound {
 		return nil, errors.Wrap(fosite.ErrNotFound, "")
 	} else if err != nil {
 		return nil, err
-	} else if !d.(*BaseSessionTable).Active && table == sqlTableCode {
+	} else if !d.Active && table == sqlTableCode {
 		var r fosite.Requester
-		if r, err = d.(*BaseSessionTable).toRequest(session, s); err != nil {
+		if r, err = d.toRequest(session, s); err != nil {
 			return nil, err
 		}
 		return r, errors.WithStack(fosite.ErrInvalidatedAuthorizeCode)
-	} else if !d.(*BaseSessionTable).Active {
+	} else if !d.Active {
 		return nil, errors.WithStack(fosite.ErrInactiveToken)
 	}
 
-	return d.(*BaseSessionTable).toRequest(session, s)
+	return d.toRequest(session, s)
 }
 
-func (s *FositeStore) deleteSession(signature string, table int) error {
+func (s *FositeStore) deleteSession(signature, table string) error {
 	signature = s.hashSignature(signature, table)
 
 	var err error
 	switch table {
 	case sqlTableOpenID:
 		err = s.db.Delete(&FositeOidc{}, "signature = ?", signature).Error
+	case sqlTableAccess:
+		err = s.db.Delete(&FositeAccess{}, "signature = ?", signature).Error
+	case sqlTableCode:
+		err = s.db.Delete(&FositeCode{}, "signature = ?", signature).Error
+	case sqlTablePKCE:
+		err = s.db.Delete(&FositePkce{}, "signature = ?", signature).Error
+	case sqlTableRefresh:
+		err = s.db.Delete(&FositeRefresh{}, "signature = ?", signature).Error
 	}
 
 	return err
@@ -142,7 +161,7 @@ func (s *FositeStore) CreateOpenIDConnectSession(_ context.Context, signature st
 
 // GetOpenIDConnectSession 获取 OpenID 认证
 func (s *FositeStore) GetOpenIDConnectSession(_ context.Context, signature string, req fosite.Requester) (fosite.Requester, error) {
-	return s.findSessionBySignature(signature, req.GetSession(), sqlTableOpenID)
+	return s.findSessionBySignature(sqlTableOpenID, signature, req.GetSession())
 }
 
 // DeleteOpenIDConnectSession 删除 OpenID 认证
@@ -152,22 +171,22 @@ func (s *FositeStore) DeleteOpenIDConnectSession(_ context.Context, signature st
 
 // CreateAuthorizeCodeSession -
 func (s *FositeStore) CreateAuthorizeCodeSession(_ context.Context, signature string, req fosite.Requester) error {
-	return s.createSession(sqlTableAccess, signature, req)
+	return s.createSession(sqlTableCode, signature, req)
 }
 
 // GetAuthorizeCodeSession -
 func (s *FositeStore) GetAuthorizeCodeSession(_ context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
-	return s.findSessionBySignature(signature, session, sqlTableCode)
+	return s.findSessionBySignature(sqlTableCode, signature, session)
 }
 
 // InvalidateAuthorizeCodeSession 失效accessCode
 func (s *FositeStore) InvalidateAuthorizeCodeSession(_ context.Context, signature string) error {
-	return s.db.Model(FositeCode{}).Where("signature=?", signature).Update("active", false).Error
+	return s.db.Model(&FositeCode{}).Where("signature=?", signature).Update("active", false).Error
 }
 
 // DeleteAuthorizeCodeSession -
 func (s *FositeStore) DeleteAuthorizeCodeSession(_ context.Context, signature string) error {
-	return s.db.Delete(FositeCode{}, "signature=?", signature).Error
+	return s.db.Delete(&FositeCode{}, "signature=?", signature).Error
 }
 
 // CreatePKCERequestSession -
@@ -177,12 +196,12 @@ func (s *FositeStore) CreatePKCERequestSession(_ context.Context, signature stri
 
 // GetPKCERequestSession -
 func (s *FositeStore) GetPKCERequestSession(_ context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
-	return s.findSessionBySignature(signature, session, sqlTablePKCE)
+	return s.findSessionBySignature(sqlTablePKCE, signature, session)
 }
 
 // DeletePKCERequestSession -
 func (s *FositeStore) DeletePKCERequestSession(_ context.Context, signature string) error {
-	return s.db.Delete(FositePkce{}, "signature=?", signature).Error
+	return s.db.Delete(&FositePkce{}, "signature=?", signature).Error
 }
 
 // CreateAccessTokenSession 创建授权码
@@ -192,12 +211,12 @@ func (s *FositeStore) CreateAccessTokenSession(_ context.Context, signature stri
 
 // GetAccessTokenSession 获取授权码
 func (s *FositeStore) GetAccessTokenSession(_ context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
-	return s.findSessionBySignature(signature, session, sqlTableAccess)
+	return s.findSessionBySignature(sqlTableAccess, signature, session)
 }
 
 // DeleteAccessTokenSession 删除授权码
 func (s *FositeStore) DeleteAccessTokenSession(_ context.Context, signature string) error {
-	return s.db.Delete(FositeAccess{}, "signature=?", signature).Error
+	return s.db.Delete(&FositeAccess{}, "signature=?", signature).Error
 }
 
 // CreateRefreshTokenSession 创建更新令牌
@@ -207,12 +226,12 @@ func (s *FositeStore) CreateRefreshTokenSession(_ context.Context, signature str
 
 // GetRefreshTokenSession 获取更新令牌
 func (s *FositeStore) GetRefreshTokenSession(_ context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
-	return s.findSessionBySignature(signature, session, sqlTableRefresh)
+	return s.findSessionBySignature(sqlTableRefresh, signature, session)
 }
 
 // DeleteRefreshTokenSession 删除更新令牌
 func (s *FositeStore) DeleteRefreshTokenSession(_ context.Context, signature string) error {
-	return s.db.Delete(FositeRefresh{}, "signature=?", signature).Error
+	return s.db.Delete(&FositeRefresh{}, "signature=?", signature).Error
 }
 
 // CreateImplicitAccessTokenSession 创建简化授权

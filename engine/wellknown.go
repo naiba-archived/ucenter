@@ -113,11 +113,11 @@ func wellknownHandler(c *gin.Context) {
 	subjectTypes := []string{"public"}
 
 	c.JSON(http.StatusOK, &WellKnown{
-		Issuer:                            "https://" + ucenter.C.Domain,
-		AuthURL:                           "https://" + ucenter.C.Domain + "/oauth2/auth",
-		TokenURL:                          "https://" + ucenter.C.Domain + "/oauth2/token",
-		JWKsURI:                           "https://" + ucenter.C.Domain + "/.well-known/jwks.json",
-		RegistrationEndpoint:              "https://" + ucenter.C.Domain,
+		Issuer:                            "http://" + ucenter.C.Domain,
+		AuthURL:                           "http://" + ucenter.C.Domain + "/oauth2/auth",
+		TokenURL:                          "http://" + ucenter.C.Domain + "/oauth2/token",
+		JWKsURI:                           "http://" + ucenter.C.Domain + "/.well-known/jwks.json",
+		RegistrationEndpoint:              "http://" + ucenter.C.Domain,
 		SubjectTypes:                      subjectTypes,
 		ResponseTypes:                     []string{"code", "code id_token", "id_token", "token id_token", "token", "token id_token code"},
 		ClaimsSupported:                   claimsSupported,

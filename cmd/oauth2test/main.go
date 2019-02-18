@@ -38,8 +38,8 @@ var endpotin = oauth2.Endpoint{
 }
 
 var googleOauthConfig = &oauth2.Config{
-	ClientID:     "1-1uegiD",
-	ClientSecret: "$2a$10$Up0eZejLL57gkMU5AMUKvudzi0cwltegxmAszADlwl2aAIM.gHogC",
+	ClientID:     "1-Ka9OvC",
+	ClientSecret: ".Vdv7PluoCxxyyvSU.O135grMef9uw8eJITRJLn.N87YbdRk.",
 	RedirectURL:  "http://localhost:8000/GoogleCallback",
 	Scopes:       []string{""},
 	Endpoint:     endpotin,
@@ -68,7 +68,7 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	provider, err := oidc.NewProvider(ctx, "http://localhost:8080")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	oidcConfig := &oidc.Config{
 		ClientID: googleOauthConfig.ClientID,
@@ -84,6 +84,7 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.FormValue("code")
 	token, err := googleOauthConfig.Exchange(ctx, code)
 	if err != nil {
+		log.Println("exchange err", err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}

@@ -60,25 +60,25 @@ func (s BaseSessionTable) toRequest(session fosite.Session, cm fosite.ClientMana
 
 // FositeOidc oidc
 type FositeOidc struct {
-	BaseSessionTable
+	*BaseSessionTable
 }
 
 // FositeAccess access
 type FositeAccess struct {
-	BaseSessionTable
+	*BaseSessionTable
 }
 
 // FositeCode code
 type FositeCode struct {
-	BaseSessionTable
+	*BaseSessionTable
 }
 
 // FositePkce pkce
 type FositePkce struct {
-	BaseSessionTable
+	*BaseSessionTable
 }
 
 // FositeRefresh refresh
 type FositeRefresh struct {
-	BaseSessionTable
+	*BaseSessionTable
 }
