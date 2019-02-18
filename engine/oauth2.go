@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -15,7 +13,6 @@ import (
 	"github.com/naiba/ucenter/pkg/nbgin"
 	"github.com/ory/fosite"
 
-	"github.com/RangelReale/osin"
 	"github.com/gin-gonic/gin"
 )
 
@@ -124,36 +121,36 @@ func oauth2auth(c *gin.Context) {
 }
 
 func oauth2token(c *gin.Context) {
-	resp := osinServer.NewResponse()
-	defer resp.Close()
+	ctx := fosite.NewContext()
 
-	if ar := osinServer.HandleAccessRequest(resp, c.Request); ar != nil {
-		switch ar.Type {
-		case osin.AUTHORIZATION_CODE:
-			ar.Authorized = true
-		case osin.REFRESH_TOKEN:
-			ar.Authorized = true
-		case osin.PASSWORD:
-			if ar.Username == "test" && ar.Password == "test" {
-				ar.Authorized = true
-			}
-		case osin.CLIENT_CREDENTIALS:
-			ar.Authorized = true
-		case osin.ASSERTION:
-			if ar.AssertionType == "urn:nb.unknown" && ar.Assertion == "very.newbie" {
-				ar.Authorized = true
+	mySessionData := storage.NewFositeSession("")
+
+	accessRequest, err := oauth2provider.NewAccessRequest(ctx, c.Request, mySessionData)
+
+	if err != nil {
+		log.Printf("Error occurred in NewAccessRequest: %+v", err)
+		oauth2provider.WriteAccessError(c.Writer, accessRequest, err)
+		return
+	}
+
+	// If this is a client_credentials grant, grant all scopes the client is allowed to perform.
+	if accessRequest.GetGrantTypes().Exact("client_credentials") {
+		for _, scope := range accessRequest.GetRequestedScopes() {
+			if fosite.HierarchicScopeStrategy(accessRequest.GetClient().GetScopes(), scope) {
+				accessRequest.GrantScope(scope)
 			}
 		}
-		osinServer.FinishAccessRequest(resp, c.Request, ar)
+	}
 
-		// If an ID Token was encoded as the UserData, serialize and sign it.
-		var id IDToken
-		if err := json.Unmarshal([]byte(ar.UserData.(string)), &id); err == nil {
-			encodeIDToken(resp, id, jwtSigner)
-		}
+	// Next we create a response for the access request. Again, we iterate through the TokenEndpointHandlers
+	// and aggregate the result in response.
+	response, err := oauth2provider.NewAccessResponse(ctx, accessRequest)
+	if err != nil {
+		log.Printf("Error occurred in NewAccessResponse: %+v", err)
+		oauth2provider.WriteAccessError(c.Writer, accessRequest, err)
+		return
 	}
-	if resp.IsError && resp.InternalError != nil {
-		fmt.Printf("ERROR: %s\n", resp.InternalError)
-	}
-	osin.OutputJSON(resp, c.Writer, c.Request)
+
+	// All done, send the response.
+	oauth2provider.WriteAccessResponse(c.Writer, accessRequest, response)
 }
