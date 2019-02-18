@@ -94,7 +94,7 @@ func ServWeb() {
 
 	// Well-known handler
 	r.GET(".well-known/openid-configuration", wellknownHandler)
-	r.GET(".well-known/jwks.json", wellknownHandler)
+	r.GET(".well-known/jwks.json", jwksHandler)
 
 	// 鉴权
 	r.Use(authorizeMiddleware)
