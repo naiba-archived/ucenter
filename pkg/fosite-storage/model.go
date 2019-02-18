@@ -10,8 +10,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// BaseSessionTable 基本结构
 type BaseSessionTable struct {
-	ID                int64 `gorm:"primary_key"`
+	ID                int64 `gorm:"PRIMARY_KEY,UNIQUE_INDEX"`
 	Signature         string
 	RequestID         string
 	RequestedAt       time.Time

@@ -31,7 +31,7 @@ func initFosite() {
 	// variable.
 	var strat = compose.CommonStrategy{
 		// alternatively you could use:
-		// CoreStrategy: compose.NewOAuth2JWTStrategy(ucenter.SystemRSAKey, new(oauth2.HMACSHAStrategy)),
+		// CoreStrategy: compose.NewOAuth2JWTStrategy(ucenter.SystemRSAKey),
 		CoreStrategy: compose.NewOAuth2HMACStrategy(config,
 			[]byte("some-super-cool-secret-that-nobody-knows"),
 			[][]byte{
@@ -92,6 +92,10 @@ func ServWeb() {
 		}
 	})
 
+	// Well-known handler
+	r.GET(".well-known/openid-configuration", wellknownHandler)
+	r.GET(".well-known/jwks.json", wellknownHandler)
+
 	// 鉴权
 	r.Use(authorizeMiddleware)
 
@@ -138,10 +142,14 @@ func ServWeb() {
 	// Oauth2
 	o := r.Group("oauth2")
 	{
-		o.Any("auth", oauth2auth)
-		o.Any("token", oauth2token)
-		o.Any("revoke", revokeEndpoint)
-		o.Any("introspect", introspectionEndpoint)
+		o.GET("auth", oauth2auth)
+		o.POST("auth", oauth2auth)
+		o.GET("token", oauth2token)
+		o.POST("token", oauth2token)
+		o.GET("revoke", revokeEndpoint)
+		o.POST("revoke", revokeEndpoint)
+		o.GET("introspect", introspectionEndpoint)
+		o.POST("introspect", introspectionEndpoint)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
