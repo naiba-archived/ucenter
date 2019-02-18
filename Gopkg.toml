@@ -2,10 +2,6 @@
   branch = "master"
   name = "github.com/gin-gonic/gin"
 
-[[constraint]]
-  branch = "master"
-  name = "github.com/RangelReale/osin"
-
 [prune]
   go-tests = true
   unused-packages = true

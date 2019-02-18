@@ -25,6 +25,7 @@ var oauth2store fosite.Storage
 
 func initFosite() {
 	oauth2store = storage.NewFositeStore(ucenter.DB, true)
+	oauth2store.(*storage.FositeStore).Migrate()
 
 	var config = new(compose.Config)
 

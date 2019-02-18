@@ -32,18 +32,18 @@ type FositeClient struct {
 	Secret string `json:"client_secret,omitempty"`
 
 	// RedirectURIs is an array of allowed redirect urls for the client, for example http://mydomain/oauth/callback .
-	RedirectURIs pq.StringArray `json:"redirect_uris"`
+	RedirectURIs pq.StringArray `gorm:"type:varchar(255)[]" json:"redirect_uris"`
 
 	// GrantTypes is an array of grant types the client is allowed to use.
 	//
 	// Pattern: client_credentials|authorization_code|implicit|refresh_token
-	GrantTypes pq.StringArray `json:"grant_types"`
+	GrantTypes pq.StringArray `gorm:"type:varchar(255)[]" json:"grant_types"`
 
 	// ResponseTypes is an array of the OAuth 2.0 response type strings that the client can
 	// use at the authorization endpoint.
 	//
 	// Pattern: id_token|code|token
-	ResponseTypes pq.StringArray `json:"response_types"`
+	ResponseTypes pq.StringArray `gorm:"type:varchar(255)[]" json:"response_types"`
 
 	// Scope is a string containing a space-separated list of scope values (as
 	// described in Section 3.3 of OAuth 2.0 [RFC6749]) that the client
@@ -55,7 +55,7 @@ type FositeClient struct {
 	// Audience is a whitelist defining the audiences this client is allowed to request tokens for. An audience limits
 	// the applicability of an OAuth 2.0 Access Token to, for example, certain API endpoints. The value is a list
 	// of URLs. URLs MUST NOT contain whitespaces.
-	Audience pq.StringArray `json:"audience"`
+	Audience pq.StringArray `gorm:"type:varchar(255)[]" json:"audience"`
 
 	// Owner is a string identifying the owner of the OAuth 2.0 Client.
 	Owner string `json:"owner"`
@@ -69,7 +69,7 @@ type FositeClient struct {
 	// to the /oauth/token endpoint. If this array is empty, the sever's CORS origin configuration (`CORS_ALLOWED_ORIGINS`)
 	// will be used instead. If this array is set, the allowed origins are appended to the server's CORS origin configuration.
 	// Be aware that environment variable `CORS_ENABLED` MUST be set to `true` for this to work.
-	AllowedCORSOrigins pq.StringArray `json:"allowed_cors_origins"`
+	AllowedCORSOrigins pq.StringArray `gorm:"type:varchar(255)[]" json:"allowed_cors_origins"`
 
 	// TermsOfServiceURI is a URL string that points to a human-readable terms of service
 	// document for the client that describes a contractual relationship
@@ -87,7 +87,7 @@ type FositeClient struct {
 
 	// Contacts is a array of strings representing ways to contact people responsible
 	// for this client, typically email addresses.
-	Contacts pq.StringArray `json:"contacts"`
+	Contacts pq.StringArray `gorm:"type:varchar(255)[]" json:"contacts"`
 
 	// SecretExpiresAt is an integer holding the time at which the client
 	// secret will expire or 0 if it will not expire. The time is
@@ -131,7 +131,7 @@ type FositeClient struct {
 	// contents of the files referenced by these URIs and not retrieve them at the time they are used in a request.
 	// OPs can require that request_uri values used be pre-registered with the require_request_uri_registration
 	// discovery parameter.
-	RequestURIs pq.StringArray `json:"request_uris,omitempty"`
+	RequestURIs pq.StringArray `gorm:"type:varchar(255)[]" json:"request_uris,omitempty"`
 
 	// JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request Objects sent to the OP. All Request Objects
 	// from this Client MUST be rejected, if not signed with this algorithm.

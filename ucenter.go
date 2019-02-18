@@ -105,8 +105,6 @@ func init() {
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	DB.Raw("ALTER TABLE osin_access MODIFY COLUMN extra VARCHAR(1000);")
-	DB.Raw("ALTER TABLE osin_authorize MODIFY COLUMN extra VARCHAR(1000);")
 	// 初始化错误翻译
 	uni := ut.New(en.New(), cn.New())
 	var found bool

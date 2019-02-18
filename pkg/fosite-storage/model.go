@@ -16,10 +16,10 @@ type baseSessionTable struct {
 	RequestID         string
 	RequestedAt       time.Time
 	ClientID          string
-	Scopes            pq.StringArray
-	GrantedScope      pq.StringArray
-	RequestedAudience pq.StringArray
-	GrantedAudience   pq.StringArray
+	Scopes            pq.StringArray `gorm:"type:varchar(255)[]"`
+	GrantedScope      pq.StringArray `gorm:"type:varchar(255)[]"`
+	RequestedAudience pq.StringArray `gorm:"type:varchar(255)[]"`
+	GrantedAudience   pq.StringArray `gorm:"type:varchar(255)[]"`
 	Form              string
 	Subject           string
 	Active            bool

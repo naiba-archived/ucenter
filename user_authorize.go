@@ -9,9 +9,9 @@ import (
 
 // UserAuthorized 用户已授权的应用
 type UserAuthorized struct {
-	UserID        uint   `gorm:"index"`
-	ClientID      string `gorm:"index"`
-	Scope         pq.StringArray
+	UserID        uint           `gorm:"index"`
+	ClientID      string         `gorm:"index"`
+	Scope         pq.StringArray `gorm:"type:varchar(255)[]"`
 	PermissionRaw string
 	Permission    map[string]bool `gorm:"-"`
 	CreatedAt     time.Time

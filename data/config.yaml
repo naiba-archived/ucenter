@@ -1,5 +1,5 @@
 auth_cookie_name: nb_uctoken
-dbdsn: "host=myhost port=myport user=gorm dbname=gorm password=mypassword"
+dbdsn: "postgres://postgres:mypassword@localhost/postgres?sslmode=disable"
 domain: localhost:8080
 web_protocol: http
 debug: true

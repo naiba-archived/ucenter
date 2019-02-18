@@ -38,7 +38,7 @@ func NewFositeStore(db *gorm.DB, hashSignature bool) *FositeStore {
 
 // Migrate db migrate
 func (s *FositeStore) Migrate() error {
-	return s.db.AutoMigrate(FositeAccess{}, FositeCode{}, FositeOidc{}, FositePkce{}, FositeRefresh{}).Error
+	return s.db.AutoMigrate(FositeAccess{}, FositeCode{}, FositeOidc{}, FositePkce{}, FositeRefresh{}, FositeClient{}).Error
 }
 
 func (s *FositeStore) hashSignature(signature string, table int) string {
