@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type baseSessionTable struct {
+type BaseSessionTable struct {
 	ID                int64 `gorm:"primary_key"`
 	Signature         string
 	RequestID         string
@@ -26,7 +26,7 @@ type baseSessionTable struct {
 	Session           []byte
 }
 
-func (s *baseSessionTable) toRequest(session fosite.Session, cm fosite.ClientManager) (*fosite.Request, error) {
+func (s BaseSessionTable) toRequest(session fosite.Session, cm fosite.ClientManager) (*fosite.Request, error) {
 	if session != nil {
 		if err := json.Unmarshal(s.Session, session); err != nil {
 			return nil, errors.WithStack(err)
@@ -59,25 +59,25 @@ func (s *baseSessionTable) toRequest(session fosite.Session, cm fosite.ClientMan
 
 // FositeOidc oidc
 type FositeOidc struct {
-	*baseSessionTable
+	BaseSessionTable
 }
 
 // FositeAccess access
 type FositeAccess struct {
-	*baseSessionTable
+	BaseSessionTable
 }
 
 // FositeCode code
 type FositeCode struct {
-	*baseSessionTable
+	BaseSessionTable
 }
 
 // FositePkce pkce
 type FositePkce struct {
-	*baseSessionTable
+	BaseSessionTable
 }
 
 // FositeRefresh refresh
 type FositeRefresh struct {
-	*baseSessionTable
+	BaseSessionTable
 }

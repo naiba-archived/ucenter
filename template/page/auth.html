@@ -7,10 +7,9 @@
 <div class="ui middle aligned center aligned grid full-height">
   <div class="column">
     <h2 class="ui image header">
-      <img src="/upload/avatar/{{.data.Client.ID}}" class="image" />
-      <div class="content">即将登录到 {{.data.Client.Ext.Name}}</div>
+      <img src="/upload/avatar/{{.data.Client.ClientID}}" class="image" />
+      <div class="content">即将登录到 {{.data.Client.Name}}</div>
     </h2>
-    <p>{{.data.Client.Ext.Desc}}</p>
     <form class="ui large form" method="POST">
       <div class="ui stacked segment left aligned">
         {{range $k,$v := .data.Check }}

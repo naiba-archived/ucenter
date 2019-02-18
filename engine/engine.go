@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ory/fosite/handler/oauth2"
-
 	"github.com/ory/fosite"
 
 	"github.com/gin-gonic/gin"
@@ -33,12 +31,12 @@ func initFosite() {
 	// variable.
 	var strat = compose.CommonStrategy{
 		// alternatively you could use:
-		CoreStrategy: compose.NewOAuth2JWTStrategy(ucenter.SystemRSAKey, new(oauth2.HMACSHAStrategy)),
-		// CoreStrategy: compose.NewOAuth2HMACStrategy(config,
-		// 	[]byte("some-super-cool-secret-that-nobody-knows"),
-		// 	[][]byte{
-		// 		[]byte("some-super-cool-secret-that-nobody-knows")},
-		// ),
+		// CoreStrategy: compose.NewOAuth2JWTStrategy(ucenter.SystemRSAKey, new(oauth2.HMACSHAStrategy)),
+		CoreStrategy: compose.NewOAuth2HMACStrategy(config,
+			[]byte("some-super-cool-secret-that-nobody-knows"),
+			[][]byte{
+				[]byte("some-super-cool-secret-that-nobody-knows")},
+		),
 		// open id connect strategy
 		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(config, ucenter.SystemRSAKey),
 	}

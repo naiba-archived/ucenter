@@ -48,7 +48,7 @@ func (s *FositeStore) hashSignature(signature string, table int) string {
 	return signature
 }
 
-func sqlDataFromRequest(signature string, r fosite.Requester) (baseSessionTable, error) {
+func sqlDataFromRequest(signature string, r fosite.Requester) (BaseSessionTable, error) {
 	subject := ""
 	if r.GetSession() != nil {
 		subject = r.GetSession().GetSubject()
@@ -56,10 +56,10 @@ func sqlDataFromRequest(signature string, r fosite.Requester) (baseSessionTable,
 
 	session, err := json.Marshal(r.GetSession())
 	if err != nil {
-		return baseSessionTable{}, errors.WithStack(err)
+		return BaseSessionTable{}, errors.WithStack(err)
 	}
 
-	return baseSessionTable{
+	return BaseSessionTable{
 		RequestID:         r.GetID(),
 		Signature:         signature,
 		RequestedAt:       r.GetRequestedAt(),
@@ -76,17 +76,26 @@ func sqlDataFromRequest(signature string, r fosite.Requester) (baseSessionTable,
 }
 
 func (s *FositeStore) createSession(table int, signature string, req fosite.Requester) error {
-	var data interface{}
 	signature = s.hashSignature(signature, table)
 	base, err := sqlDataFromRequest(signature, req)
 	if err != nil {
 		return err
 	}
+
 	switch table {
 	case sqlTableOpenID:
-		data = &FositeOidc{&base}
+		return s.db.Save(&FositeOidc{base}).Error
+	case sqlTableAccess:
+		return s.db.Save(&FositeAccess{base}).Error
+	case sqlTablePKCE:
+		return s.db.Save(&FositePkce{base}).Error
+	case sqlTableRefresh:
+		return s.db.Save(&FositeRefresh{base}).Error
+	case sqlTableCode:
+		return s.db.Save(&FositeCode{base}).Error
 	}
-	return s.db.Save(&data).Error
+
+	return fosite.ErrInvalidRequest
 }
 
 func (s *FositeStore) findSessionBySignature(signature string, session fosite.Session, table int) (fosite.Requester, error) {
@@ -101,17 +110,17 @@ func (s *FositeStore) findSessionBySignature(signature string, session fosite.Se
 		return nil, errors.Wrap(fosite.ErrNotFound, "")
 	} else if err != nil {
 		return nil, err
-	} else if !d.(*baseSessionTable).Active && table == sqlTableCode {
+	} else if !d.(*BaseSessionTable).Active && table == sqlTableCode {
 		var r fosite.Requester
-		if r, err = d.(*baseSessionTable).toRequest(session, s); err != nil {
+		if r, err = d.(*BaseSessionTable).toRequest(session, s); err != nil {
 			return nil, err
 		}
 		return r, errors.WithStack(fosite.ErrInvalidatedAuthorizeCode)
-	} else if !d.(*baseSessionTable).Active {
+	} else if !d.(*BaseSessionTable).Active {
 		return nil, errors.WithStack(fosite.ErrInactiveToken)
 	}
 
-	return d.(*baseSessionTable).toRequest(session, s)
+	return d.(*BaseSessionTable).toRequest(session, s)
 }
 
 func (s *FositeStore) deleteSession(signature string, table int) error {

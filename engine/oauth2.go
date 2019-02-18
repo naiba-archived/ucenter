@@ -49,7 +49,7 @@ func oauth2auth(c *gin.Context) {
 		user := user.(*ucenter.User)
 		ucenter.DB.Model(user).Where("client_id = ?", ar.GetClient().GetID()).Association("UserAuthorizeds").Find(&user.UserAuthorizeds)
 		if c.Request.Method == http.MethodGet {
-			if len(user.UserAuthorizeds) != 1 || storage.IsArgEqual(ar.GetRequestedScopes(), fosite.Arguments(user.UserAuthorizeds[0].Scope)) {
+			if len(user.UserAuthorizeds) == 0 || !storage.IsArgEqual(ar.GetRequestedScopes(), fosite.Arguments(user.UserAuthorizeds[0].Scope)) {
 				// 需要用户授予权限
 				var checkPerms = make(map[string]bool)
 				for _, scope := range ar.GetRequestedScopes() {
@@ -79,20 +79,22 @@ func oauth2auth(c *gin.Context) {
 			var perms = make(map[string]bool)
 			for _, scope := range ar.GetRequestedScopes() {
 				if _, has := ucenter.Scopes[scope]; !has {
-					oauth2provider.WriteAuthorizeError(c.Writer, ar, err)
+					oauth2provider.WriteAuthorizeError(c.Writer, ar, fosite.ErrInvalidScope)
 					return
 				}
-				perms[scope] = c.PostForm(scope) == "on"
+				gened := c.PostForm(scope) == "on"
+				perms[scope] = gened
 			}
 			if len(user.UserAuthorizeds) == 0 {
 				user.UserAuthorizeds = make([]ucenter.UserAuthorized, 0)
 				user.UserAuthorizeds = append(user.UserAuthorizeds, ucenter.UserAuthorized{})
 			}
+
 			user.UserAuthorizeds[0].Scope = pq.StringArray(ar.GetRequestedScopes())
 			user.UserAuthorizeds[0].Permission = perms
 			user.UserAuthorizeds[0].UserID = user.ID
 			user.UserAuthorizeds[0].ClientID = ar.GetClient().GetID()
-			// 新增授权还是更新授权
+
 			if err := ucenter.DB.Save(&user.UserAuthorizeds[0]).Error; err != nil {
 				oauth2provider.WriteAuthorizeError(c.Writer, ar, err)
 				return
@@ -101,6 +103,7 @@ func oauth2auth(c *gin.Context) {
 			oauth2provider.WriteAuthorizeError(c.Writer, ar, fosite.ErrInvalidRequest)
 			return
 		}
+
 		scop := make([]byte, 0)
 		for k, v := range user.UserAuthorizeds[0].Permission {
 			if v {
@@ -109,9 +112,7 @@ func oauth2auth(c *gin.Context) {
 			}
 		}
 		mySessionData := storage.NewFositeSession(user.StrID())
-
 		response, err := oauth2provider.NewAuthorizeResponse(ctx, ar, mySessionData)
-
 		if err != nil {
 			oauth2provider.WriteAuthorizeError(c.Writer, ar, err)
 			return
