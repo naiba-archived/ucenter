@@ -19,7 +19,7 @@ import (
 	"github.com/spf13/viper"
 
 	// MySQL Driver
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 const (
@@ -93,7 +93,7 @@ func init() {
 		panic(err)
 	}
 
-	DB, err = gorm.Open("mysql", C.DBDSN)
+	DB, err = gorm.Open("postgres", C.DBDSN)
 	if err != nil {
 		panic(err)
 	}

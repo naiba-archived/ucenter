@@ -10,14 +10,6 @@
   version = "v3.0.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:88b822fdfd4e6cc3e04bcae689b9914dadf385fbf17ccd9204dd5fa1c4582f38"
-  name = "github.com/RangelReale/osin"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "0f3357bb07e801ea62327872d19913969001dd7a"
-
-[[projects]]
   digest = "1:320e7ead93de9fd2b0e59b50fd92a4d50c1f8ab455d96bc2eb083267453a9709"
   name = "github.com/asaskevich/govalidator"
   packages = ["."]
@@ -127,14 +119,6 @@
   version = "v0.16.0"
 
 [[projects]]
-  digest = "1:ec6f9bf5e274c833c911923c9193867f3f18788c461f76f05f62bb1510e0ae65"
-  name = "github.com/go-sql-driver/mysql"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "72cd26f257d44c1114970e19afddcd812016007e"
-  version = "v1.4.1"
-
-[[projects]]
   digest = "1:97df918963298c287643883209a2c3f642e6593379f97ab400c2a2e219ab647d"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
@@ -170,11 +154,11 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:420ec120a74b22e8a967f2a2928d89503e373848c0d4447d16ddbbbef9a9965c"
+  digest = "1:7e63b12cdd7bef2c411d736cb67e28134d39f5d236aa1bfb8f3d55e3ad709eca"
   name = "github.com/jinzhu/gorm"
   packages = [
     ".",
-    "dialects/mysql",
+    "dialects/postgres",
   ]
   pruneopts = "UT"
   revision = "472c70caa40267cb89fd8facb07fe6454b578626"
@@ -205,10 +189,11 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:8ef506fc2bb9ced9b151dafa592d4046063d744c646c1bbe801982ce87e4bc24"
+  digest = "1:b18ffc558326ebaed3b4a175617f1e12ed4e3f53d6ebfe5ba372a3de16d22278"
   name = "github.com/lib/pq"
   packages = [
     ".",
+    "hstore",
     "oid",
   ]
   pruneopts = "UT"
@@ -453,10 +438,9 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:9e29a0ec029d012437d88da3ccccf18adcdce069cab08d462056c2c6bb006505"
+  digest = "1:6f3bd49ddf2e104e52062774d797714371fac1b8bddfd8e124ce78e6b2264a10"
   name = "google.golang.org/appengine"
   packages = [
-    "cloudsql",
     "internal",
     "internal/base",
     "internal/datastore",
@@ -512,7 +496,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/RangelReale/osin",
     "github.com/biezhi/gorm-paginator/pagination",
     "github.com/casbin/casbin",
     "github.com/casbin/casbin/model",
@@ -524,13 +507,14 @@
     "github.com/go-playground/locales/zh_Hans",
     "github.com/go-playground/universal-translator",
     "github.com/jinzhu/gorm",
-    "github.com/jinzhu/gorm/dialects/mysql",
+    "github.com/jinzhu/gorm/dialects/postgres",
     "github.com/lib/pq",
     "github.com/mohae/deepcopy",
     "github.com/mssola/user_agent",
     "github.com/naiba/com",
     "github.com/ory/fosite",
     "github.com/ory/fosite/compose",
+    "github.com/ory/fosite/handler/oauth2",
     "github.com/ory/fosite/handler/openid",
     "github.com/ory/fosite/token/jwt",
     "github.com/pkg/errors",
