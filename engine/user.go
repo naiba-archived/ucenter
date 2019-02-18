@@ -35,10 +35,6 @@ func index(c *gin.Context) {
 }
 
 func userStatus(c *gin.Context) {
-	if !strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain+"/") {
-		c.String(http.StatusForbidden, "CSRF Protection")
-		return
-	}
 	type userStatusForm struct {
 		ID     uint `form:"id" binding:"required,numeric,min=1"`
 		Status int  `form:"status" bindimg:"required,numeric"`
@@ -140,10 +136,6 @@ func editProfileHandler(c *gin.Context) {
 }
 
 func userDelete(c *gin.Context) {
-	if !strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain) {
-		c.String(http.StatusForbidden, "CSRF Protection")
-		return
-	}
 	id := c.Param("id")
 	u := c.MustGet(ucenter.AuthUser).(*ucenter.User)
 	if u.StrID() != id && !ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel) {
@@ -177,10 +169,6 @@ func login(c *gin.Context) {
 }
 
 func logout(c *gin.Context) {
-	if !strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain) {
-		c.String(http.StatusForbidden, "CSRF Protection")
-		return
-	}
 	token, err := c.Cookie(ucenter.C.AuthCookieName)
 	if err == nil {
 		ucenter.DB.Unscoped().Delete(ucenter.Login{}, "token = ?", token)
@@ -327,7 +315,6 @@ func editOauth2App(c *gin.Context) {
 	type Oauth2AppForm struct {
 		ID          string `form:"id" cfn:"ID" binding:"omitempty,min=3,max=255"`
 		Name        string `form:"name" cfn:"应用名" binding:"required,min=1,max=20"`
-		Desc        string `form:"desc" cfn:"简介" binding:"required,min=1,max=100"`
 		URL         string `form:"url" cfn:"首页链接" binding:"required,url,min=11,max=100"`
 		RedirectURI string `form:"redirect_uri" cfn:"跳转链接" binding:"required,url,min=1,max=255"`
 	}
@@ -405,7 +392,6 @@ func editOauth2App(c *gin.Context) {
 	// 应用入库
 	if len(errors) == 0 {
 		client.Name = ef.Name
-		client.TermsOfServiceURI = ef.Desc
 		client.ClientURI = ef.URL
 		client.RedirectURIs = []string{ef.RedirectURI}
 		if ucenter.DB.Save(&client).Error != nil {
@@ -420,11 +406,6 @@ func editOauth2App(c *gin.Context) {
 }
 
 func deleteOauth2App(c *gin.Context) {
-	if !strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain) {
-		c.String(http.StatusForbidden, "CSRF Protection")
-		return
-	}
-
 	id := c.Param("id")
 	u := c.MustGet(ucenter.AuthUser).(*ucenter.User)
 	if strings.HasPrefix(id, u.StrID()+"-") && !ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel) {
@@ -437,5 +418,5 @@ func deleteOauth2App(c *gin.Context) {
 	}
 
 	ucenter.DB.Delete(ucenter.UserAuthorized{}, "client_id = ?", id)
-	ucenter.DB.Delete(storage.FositeClient{}, "id = ?", id)
+	ucenter.DB.Delete(storage.FositeClient{}, "client_id = ?", id)
 }

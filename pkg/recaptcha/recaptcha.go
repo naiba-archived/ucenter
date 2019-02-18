@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/naiba/ucenter"
 )
 
 type recaptchaResp struct {
@@ -14,6 +16,9 @@ type recaptchaResp struct {
 
 //Verify 验证验证码
 func Verify(secret, gresp, ip string) (flag bool, host string) {
+	if strings.HasPrefix(ucenter.C.Domain, "localhost") {
+		return true, ucenter.C.Domain
+	}
 	if len(gresp) < 10 {
 		return false, ""
 	}

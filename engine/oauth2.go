@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"log"
 	"net/http"
 	"net/url"
 
@@ -21,7 +20,6 @@ func introspectionEndpoint(c *gin.Context) {
 	mySessionData := storage.NewFositeSession("")
 	ir, err := oauth2provider.NewIntrospectionRequest(ctx, c.Request, mySessionData)
 	if err != nil {
-		log.Printf("Error occurred in NewAuthorizeRequest: %+v", err)
 		oauth2provider.WriteIntrospectionError(c.Writer, err)
 		return
 	}
@@ -40,7 +38,6 @@ func oauth2auth(c *gin.Context) {
 	// It will analyze the request and extract important information like scopes, response type and others.
 	ar, err := oauth2provider.NewAuthorizeRequest(ctx, c.Request)
 	if err != nil {
-		log.Printf("Error occurred in NewAuthorizeRequest: %+v", err)
 		oauth2provider.WriteAuthorizeError(c.Writer, ar, err)
 		return
 	}
@@ -116,7 +113,6 @@ func oauth2auth(c *gin.Context) {
 		response, err := oauth2provider.NewAuthorizeResponse(ctx, ar, mySessionData)
 
 		if err != nil {
-			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
 			oauth2provider.WriteAuthorizeError(c.Writer, ar, err)
 			return
 		}
@@ -138,7 +134,6 @@ func oauth2token(c *gin.Context) {
 	accessRequest, err := oauth2provider.NewAccessRequest(ctx, c.Request, mySessionData)
 
 	if err != nil {
-		log.Printf("Error occurred in NewAccessRequest: %+v", err)
 		oauth2provider.WriteAccessError(c.Writer, accessRequest, err)
 		return
 	}
@@ -156,7 +151,6 @@ func oauth2token(c *gin.Context) {
 	// and aggregate the result in response.
 	response, err := oauth2provider.NewAccessResponse(ctx, accessRequest)
 	if err != nil {
-		log.Printf("Error occurred in NewAccessResponse: %+v", err)
 		oauth2provider.WriteAccessError(c.Writer, accessRequest, err)
 		return
 	}

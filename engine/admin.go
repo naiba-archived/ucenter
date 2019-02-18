@@ -3,7 +3,6 @@ package engine
 import (
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/gin-gonic/gin"
@@ -13,10 +12,6 @@ import (
 )
 
 func appStatus(c *gin.Context) {
-	if !strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain+"/") {
-		c.String(http.StatusForbidden, "CSRF Protection")
-		return
-	}
 	type appStatusForm struct {
 		ID     string `form:"id" binding:"required,min=1"`
 		Status int    `form:"status" bindimg:"required,numeric"`

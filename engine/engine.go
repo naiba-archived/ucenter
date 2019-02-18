@@ -97,6 +97,16 @@ func ServWeb() {
 	// 鉴权
 	r.Use(authorizeMiddleware)
 
+	// CSRF Protection
+	r.Use(func(c *gin.Context) {
+		if (c.Request.Method == http.MethodDelete ||
+			c.MustGet(ucenter.RequestRouter) == "/logout") &&
+			!strings.Contains(c.Request.Referer(), "://"+ucenter.C.Domain+"/") {
+			c.AbortWithError(http.StatusForbidden, errors.New("CSRF Protection"))
+			return
+		}
+	})
+
 	// 登录
 	r.GET("/login", login)
 	r.POST("/login", loginHandler)
