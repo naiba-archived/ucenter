@@ -17,7 +17,15 @@ import (
 )
 
 func introspectionEndpoint(c *gin.Context) {
-
+	ctx := fosite.NewContext()
+	mySessionData := storage.NewFositeSession("")
+	ir, err := oauth2provider.NewIntrospectionRequest(ctx, c.Request, mySessionData)
+	if err != nil {
+		log.Printf("Error occurred in NewAuthorizeRequest: %+v", err)
+		oauth2provider.WriteIntrospectionError(c.Writer, err)
+		return
+	}
+	oauth2provider.WriteIntrospectionResponse(c.Writer, ir)
 }
 
 func revokeEndpoint(c *gin.Context) {
