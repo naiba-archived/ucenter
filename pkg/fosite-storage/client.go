@@ -120,8 +120,9 @@ type FositeClient struct {
 	// can use jwks_uri, it MUST NOT use jwks. One significant downside of jwks is that it does not enable key rotation
 	// (which jwks_uri does, as described in Section 10 of OpenID Connect Core 1.0 [OpenID.Core]). The jwks_uri and jwks
 	// parameters MUST NOT be used together.
-	JSONWebKeys    *jose.JSONWebKeySet `gorm:"-" json:"jwks,omitempty"`
-	rawJSONWebKeys string
+	JSONWebKeys *jose.JSONWebKeySet `gorm:"-" json:"jwks,omitempty"`
+
+	RawJSONWebKeys string `json:"-"`
 
 	// Requested Client Authentication method for the Token Endpoint. The options are client_secret_post,
 	// client_secret_basic, private_key_jwt, and none.
@@ -155,20 +156,20 @@ type FositeClient struct {
 // BeforeSave hook
 func (c *FositeClient) BeforeSave() error {
 	t, err := json.Marshal(c.JSONWebKeys)
-	c.rawJSONWebKeys = string(t)
+	c.RawJSONWebKeys = string(t)
 	return err
 }
 
 // BeforeUpdate hook
 func (c *FositeClient) BeforeUpdate() error {
 	t, err := json.Marshal(c.JSONWebKeys)
-	c.rawJSONWebKeys = string(t)
+	c.RawJSONWebKeys = string(t)
 	return err
 }
 
 // AfterFind hook
 func (c *FositeClient) AfterFind() error {
-	return json.Unmarshal([]byte(c.rawJSONWebKeys), &c.JSONWebKeys)
+	return json.Unmarshal([]byte(c.RawJSONWebKeys), &c.JSONWebKeys)
 }
 
 // GetID 获取ID

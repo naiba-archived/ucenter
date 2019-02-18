@@ -38,14 +38,14 @@ var endpotin = oauth2.Endpoint{
 }
 
 var googleOauthConfig = &oauth2.Config{
-	ClientID:     "1-2GEwTi",
-	ClientSecret: "BthSEHFlRChqhdGk",
+	ClientID:     "1-1uegiD",
+	ClientSecret: "$2a$10$Up0eZejLL57gkMU5AMUKvudzi0cwltegxmAszADlwl2aAIM.gHogC",
 	RedirectURL:  "http://localhost:8000/GoogleCallback",
-	Scopes:       []string{"openid"},
+	Scopes:       []string{""},
 	Endpoint:     endpotin,
 }
 
-const oauthStateString = "random"
+const oauthStateString = "randomxx"
 
 func main() {
 	http.HandleFunc("/", handleMain)

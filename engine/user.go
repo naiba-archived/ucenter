@@ -355,6 +355,7 @@ func editOauth2App(c *gin.Context) {
 	}
 
 	var client *storage.FositeClient
+	var newClient bool
 
 	// 验证管理权
 	if len(ef.ID) > 0 {
@@ -368,6 +369,8 @@ func editOauth2App(c *gin.Context) {
 			errors["editOauthAppForm.应用名"] = "应用已被禁用，无法进行操作"
 		}
 	} else {
+		newClient = true
+		client = new(storage.FositeClient)
 		client.ClientID, err = genClientID(u.StrID())
 		if err != nil {
 			errors["editOauthAppForm.应用名"] = "生成应用ID"
@@ -387,6 +390,15 @@ func editOauth2App(c *gin.Context) {
 			io.Copy(out, f)
 		}
 		client.LogoURI = "/upload/avatar/" + client.ClientID
+	}
+
+	if newClient {
+		b, err := bcrypt.GenerateFromPassword([]byte(time.Now().String()+ef.Name), bcrypt.DefaultCost)
+		if err != nil {
+			errors["editOauthAppForm.应用名"] = "生成秘钥出错"
+		} else {
+			client.Secret = string(b)
+		}
 	}
 
 	// 应用入库
