@@ -21,7 +21,9 @@ func introspectionEndpoint(c *gin.Context) {
 }
 
 func revokeEndpoint(c *gin.Context) {
-
+	ctx := fosite.NewContext()
+	err := oauth2provider.NewRevocationRequest(ctx, c.Request)
+	oauth2provider.WriteRevocationResponse(c.Writer, err)
 }
 
 func oauth2auth(c *gin.Context) {
