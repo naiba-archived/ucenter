@@ -132,8 +132,8 @@ func ServWeb() {
 	{
 		o.Any("auth", oauth2auth)
 		o.Any("token", oauth2token)
-		o.Any("/oauth2/revoke", revokeEndpoint)
-		o.Any("/oauth2/introspect", introspectionEndpoint)
+		o.Any("revoke", revokeEndpoint)
+		o.Any("introspect", introspectionEndpoint)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
