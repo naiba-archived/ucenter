@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -26,18 +25,9 @@ func appStatus(c *gin.Context) {
 	var asf appStatusForm
 	// 验证用户输入
 	err := c.ShouldBind(&asf)
-	if asf.Status != 0 && asf.Status != ucenter.StatusOauthClientSuspended {
-		err = errors.New("不支持的状态")
-	}
 	if err == nil {
-		var clientOrigin ucenter.OsinClient
-		err = ucenter.DB.Model(ucenter.OsinClient{}).Where("id = ?", asf.ID).Find(&clientOrigin).Error
-		if err == nil {
-			oc, _ := clientOrigin.ToOauth2Client()
-			oc.Ext.Status = asf.Status
-			c, _ := oc.ToOsinClient()
-			err = osinStore.UpdateClient(c)
-		}
+		var clientOrigin storage.FositeClient
+		err = ucenter.DB.Model(storage.FositeClient{}).Where("id = ?", asf.ID).Find(&clientOrigin).Error
 	}
 	if err != nil {
 		c.AbortWithError(http.StatusForbidden, err)

@@ -10,6 +10,11 @@ import (
 	"gopkg.in/square/go-jose.v2"
 )
 
+const (
+	// StatusOauthClientSuspended 禁用应用
+	StatusOauthClientSuspended = -1
+)
+
 // FositeClient represents an OAuth 2.0 FositeClient.
 //
 // swagger:model oAuth2Client
@@ -142,6 +147,9 @@ type FositeClient struct {
 
 	// UpdatedAt returns the timestamp of the last update.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+
+	// Status status of client.
+	Status int `json:"status,omitempty"`
 }
 
 // BeforeSave hook

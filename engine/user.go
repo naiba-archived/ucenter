@@ -2,7 +2,6 @@ package engine
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -10,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/naiba/ucenter/pkg/fosite-storage"
 
 	"github.com/RangelReale/osin"
 	"github.com/jinzhu/gorm"
@@ -29,22 +30,7 @@ var isImage = regexp.MustCompile(`^.*\.((png)|(jpeg)|(jpg)|(gif))$`)
 
 func index(c *gin.Context) {
 	u := c.MustGet(ucenter.AuthUser).(*ucenter.User)
-	var allAppsOrigin []ucenter.OsinClient
-	ucenter.DB.Model(ucenter.OsinClient{}).Find(&allAppsOrigin)
-	apps := make([]ucenter.Oauth2Client, 0)
-	allapps := make([]ucenter.Oauth2Client, 0)
-	var x ucenter.Oauth2Client
-	for i := 0; i < len(allAppsOrigin); i++ {
-		x, _ = allAppsOrigin[i].ToOauth2Client()
-		allapps = append(allapps, x)
-		if strings.HasPrefix(x.ID, u.StrID()+"-") {
-			apps = append(apps, x)
-		}
-	}
-	c.HTML(http.StatusOK, "user/index", nbgin.Data(c, gin.H{
-		"apps":    apps,
-		"allapps": allapps,
-	}))
+	c.HTML(http.StatusOK, "user/index", nbgin.Data(c, gin.H{}))
 }
 
 func userStatus(c *gin.Context) {
@@ -170,7 +156,7 @@ func userDelete(c *gin.Context) {
 
 	ucenter.DB.Delete(ucenter.Login{}, "user_id = ?", id)
 	ucenter.DB.Delete(ucenter.UserAuthorized{}, "user_id = ?", id)
-	ucenter.DB.Delete(ucenter.OsinClient{}, "id LIKE ?", fmt.Sprintf("%s-%s", id, "%"))
+	ucenter.DB.Delete(storage.FositeClient{}, "owner = ?", id)
 	ucenter.DB.Unscoped().Delete(ucenter.User{}, "id = ?", id)
 }
 
@@ -462,5 +448,5 @@ func deleteOauth2App(c *gin.Context) {
 	}
 
 	ucenter.DB.Delete(ucenter.UserAuthorized{}, "client_id = ?", id)
-	ucenter.DB.Delete(ucenter.OsinClient{}, "id = ?", id)
+	ucenter.DB.Delete(storage.FositeClient{}, "id = ?", id)
 }
