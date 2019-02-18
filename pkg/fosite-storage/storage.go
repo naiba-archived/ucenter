@@ -141,17 +141,6 @@ func (s *FositeStore) DeleteOpenIDConnectSession(_ context.Context, signature st
 	return s.deleteSession(signature, sqlTableOpenID)
 }
 
-// GetClient 获取终端
-func (s *FositeStore) GetClient(_ context.Context, id string) (fosite.Client, error) {
-	var c FositeClient
-	if err := s.db.First(&c, "client_id = ?", id).Error; err == gorm.ErrRecordNotFound {
-		return nil, fosite.ErrNotFound
-	} else if err != nil {
-		return nil, fosite.ErrServerError
-	}
-	return &c, nil
-}
-
 // CreateAuthorizeCodeSession -
 func (s *FositeStore) CreateAuthorizeCodeSession(_ context.Context, signature string, req fosite.Requester) error {
 	return s.createSession(sqlTableAccess, signature, req)
@@ -259,4 +248,15 @@ func (s *FositeStore) RevokeAccessToken(ctx context.Context, requestID string) e
 	}
 	s.DeleteAccessTokenSession(ctx, d.Signature)
 	return nil
+}
+
+// GetClient 查找客户端
+func (s *FositeStore) GetClient(_ context.Context, id string) (fosite.Client, error) {
+	var c FositeClient
+	if err := s.db.First(&c, "client_id = ?", id).Error; err == gorm.ErrRecordNotFound {
+		return nil, fosite.ErrNotFound
+	} else if err != nil {
+		return nil, fosite.ErrServerError
+	}
+	return &c, nil
 }

@@ -12,7 +12,6 @@ import (
 
 	"github.com/naiba/ucenter/pkg/fosite-storage"
 
-	"github.com/RangelReale/osin"
 	"github.com/jinzhu/gorm"
 	"github.com/naiba/com"
 
@@ -30,7 +29,9 @@ var isImage = regexp.MustCompile(`^.*\.((png)|(jpeg)|(jpg)|(gif))$`)
 
 func index(c *gin.Context) {
 	u := c.MustGet(ucenter.AuthUser).(*ucenter.User)
-	c.HTML(http.StatusOK, "user/index", nbgin.Data(c, gin.H{}))
+	c.HTML(http.StatusOK, "user/index", nbgin.Data(c, gin.H{
+		"user": u,
+	}))
 }
 
 func userStatus(c *gin.Context) {
@@ -366,29 +367,23 @@ func editOauth2App(c *gin.Context) {
 		errors["editOauthAppForm.圆图标"] = "圆图标必须上传"
 	}
 
-	var client ucenter.Oauth2Client
-	isNewClient := false
+	var client *storage.FositeClient
 
 	// 验证管理权
 	if len(ef.ID) > 0 {
-		oc, err := osinStore.GetClient(ef.ID)
+		x, err := oauth2store.GetClient(nil, ef.ID)
+		client = x.(*storage.FositeClient)
 		isAdmin := ucenter.RAM.Enforce(u.StrID(), ram.DefaultDomain, ram.DefaultProject, ram.PolicyAdminPanel)
 		if err != nil || (!strings.HasPrefix(ef.ID, u.StrID()+"-") && !isAdmin) {
 			errors["editOauthAppForm.应用名"] = "ID错误"
-		} else {
-			client, err = ucenter.ToOauth2Client(oc)
-			if err != nil {
-				errors["editOauthAppForm.应用名"] = "服务器错误，解析JSON"
-			}
 		}
-		if client.Ext.Status == ucenter.StatusOauthClientSuspended && !isAdmin {
+		if client.Status == storage.StatusOauthClientSuspended && !isAdmin {
 			errors["editOauthAppForm.应用名"] = "应用已被禁用，无法进行操作"
 		}
 	} else {
-		isNewClient = true
-		client.ID, err = genClientID(u.StrID())
+		client.ClientID, err = genClientID(u.StrID())
 		if err != nil {
-			errors["editOauthAppForm.应用名"] = "服务器错误，解析JSON"
+			errors["editOauthAppForm.应用名"] = "生成应用ID"
 		} else {
 			client.Secret = com.RandomString(16)
 		}
@@ -397,29 +392,23 @@ func editOauth2App(c *gin.Context) {
 	// 储存头像
 	if len(errors) == 0 && f != nil {
 		f.Seek(0, 0)
-		out, err := os.Create("data/upload/avatar/" + client.ID)
+		out, err := os.Create("data/upload/avatar/" + client.ClientID)
 		if err != nil {
 			errors["editOauthAppForm.应用名"] = "服务器错误，头像储存"
 		} else {
 			defer out.Close()
 			io.Copy(out, f)
 		}
+		client.LogoURI = "/upload/avatar/" + client.ClientID
 	}
 
 	// 应用入库
 	if len(errors) == 0 {
-		var oc osin.Client
-		client.Ext.Name = ef.Name
-		client.Ext.Desc = ef.Desc
-		client.Ext.URL = ef.URL
-		client.RedirectURI = ef.RedirectURI
-		oc, err = client.ToOsinClient()
-		if isNewClient {
-			err = osinStore.CreateClient(oc)
-		} else {
-			err = osinStore.UpdateClient(oc)
-		}
-		if err != nil {
+		client.Name = ef.Name
+		client.TermsOfServiceURI = ef.Desc
+		client.ClientURI = ef.URL
+		client.RedirectURIs = []string{ef.RedirectURI}
+		if ucenter.DB.Save(&client).Error != nil {
 			errors["editOauthAppForm.应用名"] = "存入数据库出错"
 		}
 	}
