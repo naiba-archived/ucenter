@@ -20,6 +20,7 @@ import (
 
 var oauth2provider fosite.OAuth2Provider
 var oauth2store fosite.Storage
+var oauth2strategy compose.CommonStrategy
 
 func initFosite() {
 	oauth2store = storage.NewFositeStore(ucenter.DB, true)
@@ -29,7 +30,7 @@ func initFosite() {
 
 	// Because we are using oauth2 and open connect id, we use this little helper to combine the two in one
 	// variable.
-	var strat = compose.CommonStrategy{
+	oauth2strategy = compose.CommonStrategy{
 		// alternatively you could use:
 		// CoreStrategy: compose.NewOAuth2JWTStrategy(ucenter.SystemRSAKey),
 		CoreStrategy: compose.NewOAuth2HMACStrategy(config,
@@ -39,12 +40,17 @@ func initFosite() {
 		),
 		// open id connect strategy
 		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(config, ucenter.SystemRSAKey),
+		JWTStrategy: compose.NewOAuth2JWTStrategy(ucenter.SystemRSAKey, compose.NewOAuth2HMACStrategy(config,
+			[]byte("some-super-cool-secret-that-nobody-knows"),
+			[][]byte{
+				[]byte("some-super-cool-secret-that-nobody-knows")},
+		)),
 	}
 
 	oauth2provider = compose.Compose(
 		config,
 		oauth2store,
-		strat,
+		oauth2strategy,
 		nil,
 
 		// enabled handlers
@@ -143,6 +149,7 @@ func ServWeb() {
 	o := r.Group("oauth2")
 	{
 		o.GET("auth", oauth2auth)
+		o.GET("info", userInfo)
 		o.POST("auth", oauth2auth)
 		o.GET("token", oauth2token)
 		o.POST("token", oauth2token)

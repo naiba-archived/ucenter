@@ -109,7 +109,7 @@ type WellKnown struct {
 
 func wellknownHandler(c *gin.Context) {
 	claimsSupported := []string{"sub"}
-	scopesSupported := []string{"offline", "openid"}
+	scopesSupported := []string{"profile", "openid"}
 	subjectTypes := []string{"public"}
 
 	c.JSON(http.StatusOK, &WellKnown{

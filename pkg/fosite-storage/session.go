@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/mohae/deepcopy"
+	"github.com/naiba/ucenter"
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
@@ -21,7 +22,10 @@ type FositeSession struct {
 func NewFositeSession(subject string) *FositeSession {
 	return &FositeSession{
 		DefaultSession: &openid.DefaultSession{
-			Claims:  new(jwt.IDTokenClaims),
+			Claims: &jwt.IDTokenClaims{
+				Issuer:  "http://" + ucenter.C.Domain,
+				Subject: subject,
+			},
 			Headers: new(jwt.Headers),
 			Subject: subject,
 		},
@@ -58,6 +62,7 @@ func (s *FositeSession) GetJWTClaims() jwt.JWTClaimsContainer {
 	}
 
 	claims.Extra["client_id"] = s.ClientID
+
 	return claims
 }
 

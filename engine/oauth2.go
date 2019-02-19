@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -8,9 +10,11 @@ import (
 
 	"github.com/naiba/ucenter/pkg/fosite-storage"
 
+	jwt2 "github.com/dgrijalva/jwt-go"
 	"github.com/naiba/ucenter"
 	"github.com/naiba/ucenter/pkg/nbgin"
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/token/jwt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -124,6 +128,68 @@ func oauth2auth(c *gin.Context) {
 		// 用户未登录，跳转登录界面
 		nbgin.SetNoCache(c)
 		c.Redirect(http.StatusFound, "/login?return_url="+url.QueryEscape(c.Request.RequestURI))
+	}
+}
+
+func userInfo(c *gin.Context) {
+	session := storage.NewFositeSession("")
+	tokenType, ar, err := oauth2provider.IntrospectToken(c, fosite.AccessTokenFromRequest(c.Request), fosite.AccessToken, session)
+	if err != nil {
+		c.AbortWithError(http.StatusUnauthorized, err)
+		return
+	}
+
+	if tokenType != fosite.AccessToken {
+		c.AbortWithError(http.StatusUnauthorized, errors.New("Only access tokens are allowed in the authorization header"))
+		return
+	}
+
+	cli, ok := ar.GetClient().(*storage.FositeClient)
+	if !ok {
+		c.AbortWithError(http.StatusInternalServerError, fosite.ErrServerError.WithHint("Unable to type assert to *client.Client"))
+		return
+	}
+
+	if cli.UserinfoSignedResponseAlg == "RS256" {
+		interim := ar.GetSession().(*storage.FositeSession).IDTokenClaims().ToMap()
+
+		delete(interim, "nonce")
+		delete(interim, "at_hash")
+		delete(interim, "c_hash")
+		delete(interim, "auth_time")
+		delete(interim, "iat")
+		delete(interim, "rat")
+		delete(interim, "exp")
+		delete(interim, "jti")
+
+		token, _, err := oauth2strategy.Generate(c, jwt2.MapClaims(interim), &jwt.Headers{
+			Extra: map[string]interface{}{
+				"kid": 1,
+			},
+		})
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		c.Header("Content-Type", "application/jwt")
+		c.Writer.Write([]byte(token))
+	} else if cli.UserinfoSignedResponseAlg == "" || cli.UserinfoSignedResponseAlg == "none" {
+		interim := ar.GetSession().(*storage.FositeSession).IDTokenClaims().ToMap()
+		delete(interim, "aud")
+		delete(interim, "iss")
+		delete(interim, "nonce")
+		delete(interim, "at_hash")
+		delete(interim, "c_hash")
+		delete(interim, "auth_time")
+		delete(interim, "iat")
+		delete(interim, "rat")
+		delete(interim, "exp")
+		delete(interim, "jti")
+
+		c.JSON(http.StatusOK, interim)
+	} else {
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Unsupported userinfo signing algorithm \"%s\"", cli.UserinfoSignedResponseAlg))
 	}
 }
 

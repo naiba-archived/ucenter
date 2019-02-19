@@ -41,7 +41,7 @@ var googleOauthConfig = &oauth2.Config{
 	ClientID:     "1-Ka9OvC",
 	ClientSecret: ".Vdv7PluoCxxyyvSU.O135grMef9uw8eJITRJLn.N87YbdRk.",
 	RedirectURL:  "http://localhost:8000/GoogleCallback",
-	Scopes:       []string{""},
+	Scopes:       []string{"profile openid"},
 	Endpoint:     endpotin,
 }
 
