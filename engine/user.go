@@ -371,6 +371,7 @@ func editOauth2App(c *gin.Context) {
 	} else {
 		newClient = true
 		client = new(storage.FositeClient)
+		client.Scope = "profile openid"
 		client.ClientID, err = genClientID(u.StrID())
 		if err != nil {
 			errors["editOauthAppForm.应用名"] = "生成应用ID"
