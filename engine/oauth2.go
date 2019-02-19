@@ -6,17 +6,15 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/lib/pq"
-
-	"github.com/naiba/ucenter/pkg/fosite-storage"
-
 	jwt2 "github.com/dgrijalva/jwt-go"
-	"github.com/naiba/ucenter"
-	"github.com/naiba/ucenter/pkg/nbgin"
+	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/token/jwt"
 
-	"github.com/gin-gonic/gin"
+	"github.com/naiba/ucenter"
+	"github.com/naiba/ucenter/pkg/fosite-storage"
+	"github.com/naiba/ucenter/pkg/nbgin"
 )
 
 func introspectionEndpoint(c *gin.Context) {
