@@ -160,13 +160,6 @@ func (c *FositeClient) BeforeSave() error {
 	return err
 }
 
-// BeforeUpdate hook
-func (c *FositeClient) BeforeUpdate() error {
-	t, err := json.Marshal(c.JSONWebKeys)
-	c.RawJSONWebKeys = string(t)
-	return err
-}
-
 // AfterFind hook
 func (c *FositeClient) AfterFind() error {
 	return json.Unmarshal([]byte(c.RawJSONWebKeys), &c.JSONWebKeys)

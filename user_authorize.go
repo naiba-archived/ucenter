@@ -32,10 +32,3 @@ func (ua *UserAuthorized) BeforeSave() error {
 	ua.PermissionRaw = string(b)
 	return nil
 }
-
-// BeforeUpdate 编码用户授权
-func (ua *UserAuthorized) BeforeUpdate() error {
-	b, _ := json.Marshal(ua.Permission)
-	ua.PermissionRaw = string(b)
-	return nil
-}
